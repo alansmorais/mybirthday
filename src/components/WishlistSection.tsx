@@ -53,35 +53,45 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
   const handleToggleReservation = async (item: WishlistItem) => {
     setReservingId(item.id);
     try {
-      const res = await fetch(`/api/wishlist/${item.id}/reserve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setItems(prev =>
-          prev.map(i => (i.id === item.id ? { ...i, isReserved: data.isReserved } : i))
-        );
+      let nextReservedState = !item.isReserved;
+      let apiSuccess = false;
 
-        const newMyReservations = {
-          ...myReservations,
-          [item.id]: data.isReserved
-        };
-        setMyReservations(newMyReservations);
-        localStorage.setItem('alans_my_reservations', JSON.stringify(newMyReservations));
-
-        if (data.isReserved) {
-          confetti({
-            particleCount: 60,
-            spread: 70,
-            origin: { y: 0.7 },
-            colors: ['#F5B942', '#38BDF8', '#FF8A3D', '#22C55E']
-          });
+      try {
+        const res = await fetch(`/api/wishlist/${item.id}/reserve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          nextReservedState = data.isReserved;
+          apiSuccess = true;
         }
+      } catch {
+        // static GitHub Pages fallback
+      }
 
-        if (onReservationChanged) {
-          onReservationChanged();
-        }
+      setItems(prev =>
+        prev.map(i => (i.id === item.id ? { ...i, isReserved: nextReservedState } : i))
+      );
+
+      const newMyReservations = {
+        ...myReservations,
+        [item.id]: nextReservedState
+      };
+      setMyReservations(newMyReservations);
+      localStorage.setItem('alans_my_reservations', JSON.stringify(newMyReservations));
+
+      if (nextReservedState) {
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.7 },
+          colors: ['#F5B942', '#38BDF8', '#FF8A3D', '#22C55E']
+        });
+      }
+
+      if (onReservationChanged) {
+        onReservationChanged();
       }
     } catch (err) {
       console.error('Error reserving item:', err);

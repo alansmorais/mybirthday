@@ -32,9 +32,27 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   useEffect(() => {
     fetch('/api/rsvps/public-stats')
-      .then(res => res.json())
-      .then(data => setPublicStats(data))
-      .catch(() => {});
+      .then(res => {
+        if (!res.ok) throw new Error('API unavailable');
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) throw new Error('Not JSON');
+        return res.json();
+      })
+      .then(data => {
+        if (data && typeof data.totalHeadcount === 'number') {
+          setPublicStats(data);
+        }
+      })
+      .catch(() => {
+        try {
+          const localRsvps = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
+          const confirmed = localRsvps.filter((r: any) => r.status === 'YES');
+          const headcount = confirmed.reduce((acc: number, r: any) => acc + (r.guestCount || 1), 0);
+          if (headcount > 0) {
+            setPublicStats({ attendingCount: confirmed.length, totalHeadcount: headcount });
+          }
+        } catch {}
+      });
   }, []);
 
   const scrollToSection = (id: string) => {

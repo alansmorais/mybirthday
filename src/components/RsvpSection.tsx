@@ -28,25 +28,48 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({ onRsvpSubmitted }) => 
     setLoading(true);
 
     try {
-      const res = await fetch('/api/rsvp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let finalRsvp: RsvpSubmission | null = null;
+      try {
+        const res = await fetch('/api/rsvp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status,
+            name: name.trim(),
+            guestCount,
+            message: message.trim()
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.rsvp) {
+            finalRsvp = data.rsvp;
+          }
+        }
+      } catch {
+        // Fallback to offline/static mode (e.g. GitHub Pages)
+      }
+
+      if (!finalRsvp) {
+        const fallbackRsvp: RsvpSubmission = {
+          id: `rsvp-${Date.now()}`,
           status,
           name: name.trim(),
           guestCount,
-          message: message.trim()
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit RSVP.');
+          message: message.trim(),
+          createdAt: new Date().toISOString()
+        };
+        try {
+          const existing = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
+          localStorage.setItem('alans_rsvps', JSON.stringify([...existing, fallbackRsvp]));
+        } catch {}
+        finalRsvp = fallbackRsvp;
       }
 
-      setSubmittedRsvp(data.rsvp);
+      setSubmittedRsvp(finalRsvp);
       if (onRsvpSubmitted) {
-        onRsvpSubmitted(data.rsvp);
+        onRsvpSubmitted(finalRsvp);
       }
 
       // Celebratory colorful retro confetti
@@ -59,7 +82,7 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({ onRsvpSubmitted }) => 
         });
       }
     } catch (err: any) {
-      setError(err.message || "Error reaching Dad's server.");
+      setError(err.message || "Error saving your RSVP response.");
     } finally {
       setLoading(false);
     }
