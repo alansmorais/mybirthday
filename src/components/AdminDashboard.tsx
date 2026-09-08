@@ -108,16 +108,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           tokenToSave = data.token || trimmedPassword;
         } else if (res.status === 401) {
           throw new Error('Incorrect password.');
+        } else {
+          // Trigger fallback for 404/static server responses
+          throw new Error('FALLBACK');
         }
       } catch (networkErr: any) {
         if (networkErr.message === 'Incorrect password.') {
           throw networkErr;
         }
-        // Fallback for static GitHub Pages
-        if (trimmedPassword === 'daddy2026' || trimmedPassword === 'admin') {
+        // Fallback for static GitHub Pages or server unreachable
+        const clientSideAdminPassword = (import.meta as any).env?.VITE_ADMIN_PASSWORD || 'daddy2026';
+        if (
+          trimmedPassword === clientSideAdminPassword ||
+          trimmedPassword === 'daddy2026' ||
+          trimmedPassword === 'admin'
+        ) {
           tokenToSave = trimmedPassword;
         } else {
-          throw new Error('Incorrect password. (Default: daddy2026)');
+          throw new Error('Incorrect password.');
         }
       }
 
