@@ -2,5 +2,7 @@
   "name": "Alan's 30+ Dad Joke Experience™",
   "description": "Vivid, funny, sarcastic retro dad-themed birthday invitation in Kraków with interactive RSVP, Dad Performance Report, Dad Rules, and Daddy's Wishlist.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
