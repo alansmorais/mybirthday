@@ -26,6 +26,10 @@ import {
 import { RsvpSubmission, WishlistItem, AdminStats } from '../types';
 import { INITIAL_WISHLIST } from '../data/initialWishlist';
 
+// --- ADMIN PASSWORD CONFIGURATION FOR GITHUB PAGES ---
+// You can edit this fallback password directly in the code for your static site!
+const GITHUB_PAGES_ADMIN_PASSWORD = 'daddy2026';
+
 interface AdminDashboardProps {
   onBackToInvite: () => void;
   adminToken: string | null;
@@ -117,12 +121,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           throw networkErr;
         }
         // Fallback for static GitHub Pages or server unreachable
-        const clientSideAdminPassword = (import.meta as any).env?.VITE_ADMIN_PASSWORD || 'daddy2026';
-        if (
-          trimmedPassword === clientSideAdminPassword ||
-          trimmedPassword === 'daddy2026' ||
-          trimmedPassword === 'admin'
-        ) {
+        const clientSideAdminPassword = (import.meta as any).env?.VITE_ADMIN_PASSWORD || GITHUB_PAGES_ADMIN_PASSWORD;
+        if (trimmedPassword === clientSideAdminPassword) {
           tokenToSave = trimmedPassword;
         } else {
           throw new Error('Incorrect password.');

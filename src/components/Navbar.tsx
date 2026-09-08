@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             id="admin-vault-nav-btn"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-arcade bg-[#172554] hover:bg-[#1e2e54] text-[#F5B942] border border-[#F5B942]/40 transition-all cursor-pointer"
-            title="Dad's Admin Guest List (Password: daddy2026)"
+            title="Dad's Admin Guest List"
           >
             <Lock className="w-3 h-3 text-[#F5B942]" />
             <span className="hidden sm:inline">{activeTab === 'admin' ? 'Back' : 'Dad Vault'}</span>
