@@ -1,0 +1,122 @@
+{
+  "rsvps": [
+    {
+      "id": "rsvp-1",
+      "status": "YES",
+      "name": "Kasia & Mateusz",
+      "guestCount": 2,
+      "message": "Bringing the best craft IPA from Warsaw. Happy 30+!",
+      "createdAt": "2026-09-05T16:15:34.376Z",
+      "checkedIn": true
+    },
+    {
+      "id": "rsvp-2",
+      "status": "YES",
+      "name": "Viktor K.",
+      "guestCount": 1,
+      "message": "Will definitely look like I have my life together.",
+      "createdAt": "2026-09-06T16:15:34.376Z",
+      "checkedIn": false
+    },
+    {
+      "id": "rsvp-3",
+      "status": "MAYBE",
+      "name": "Anna & Friends",
+      "guestCount": 2,
+      "message": "Negotiating the train schedule from Wrocław. High probability!",
+      "createdAt": "2026-09-07T22:15:34.376Z",
+      "checkedIn": false
+    },
+    {
+      "id": "rsvp-4",
+      "status": "YES",
+      "name": "Tomek (The Architect)",
+      "guestCount": 1,
+      "message": "Third beer milestone is where the real philosophy begins.",
+      "createdAt": "2026-09-08T08:15:34.376Z",
+      "checkedIn": false
+    }
+  ],
+  "wishlist": [
+    {
+      "id": "item-1",
+      "title": "JACK REACHER / LEE CHILD",
+      "subtitle": "Especially Killing Floor or any gripping Reacher paperback.",
+      "description": "Paperback preferred for comfortable reading during quiet hours.",
+      "price": "Approx. 30–60 zł • Paperback preferred",
+      "category": "Literature",
+      "iconName": "BookOpen",
+      "isReserved": false
+    },
+    {
+      "id": "item-2",
+      "title": "GUITAR TUNER",
+      "subtitle": "Clip-on acoustic/electric chromatic tuner (e.g. Snark, TC Electronic, Boss).",
+      "description": "Keep the riffs in tune without disturbing the neighbours.",
+      "price": "Approx. 30–100 zł",
+      "category": "Music Gear",
+      "iconName": "Music",
+      "isReserved": false
+    },
+    {
+      "id": "item-3",
+      "title": "EDC / FOLDING KNIFE",
+      "subtitle": "Classy pocket knife (Opinel No. 8, Victorinox Swiss Army, or sleek EDC folder).",
+      "description": "Essential gentleman everyday carry for opening packages and artisanal cheese.",
+      "price": "Approx. 50–150 zł",
+      "category": "EDC & Utility",
+      "iconName": "ShieldAlert",
+      "isReserved": false
+    },
+    {
+      "id": "item-4",
+      "title": "KNIFE SHARPENING GEAR",
+      "subtitle": "Whetstone (1000/6000 grit), leather strop, or ceramic honing rod.",
+      "description": "For that razor-sharp satisfying edge maintenance.",
+      "price": "Approx. 30–150 zł",
+      "category": "Craft & Maintenance",
+      "iconName": "Sparkles",
+      "isReserved": false
+    },
+    {
+      "id": "item-5",
+      "title": "PUZZLES & BRAIN TEASERS",
+      "subtitle": "Cast metal Hanayama puzzle, wooden Japanese secret puzzle box, or mechanical teaser.",
+      "description": "Tactile mental gymnastics while pretending to listen on Zoom calls.",
+      "price": "Approx. 30–150 zł",
+      "category": "Puzzles & Novelties",
+      "iconName": "Puzzle",
+      "isReserved": false
+    },
+    {
+      "id": "item-6",
+      "title": "DISCREET NOVELTY / ADULT ACCESSORIES",
+      "subtitle": "Tasteful, cheeky, adult-appropriate intrigue. Surprise Daddy responsibly.",
+      "description": "Discretion guaranteed. No questions asked.",
+      "price": "Approx. 30–150 zł • Discretion guaranteed",
+      "category": "Adult Cheeky",
+      "iconName": "Flame",
+      "isReserved": false
+    },
+    {
+      "id": "item-7",
+      "title": "BOOK — SURPRISE ME",
+      "subtitle": "History, biography, philosophy, espionage, or grim darkly funny fiction.",
+      "description": "Feed Daddy’s voracious curiosity with a thoughtful, unexpected read.",
+      "price": "Approx. 30–100 zł",
+      "category": "Literature",
+      "iconName": "BookMarked",
+      "isReserved": false
+    },
+    {
+      "id": "item-8",
+      "title": "SURPRISE DADDY",
+      "subtitle": "Whisky miniature, fine ground coffee beans, or something completely absurd.",
+      "description": "Let your creativity run wild with something memorable.",
+      "price": "Any amount",
+      "category": "Wildcard",
+      "iconName": "Gift",
+      "isReserved": false
+    }
+  ]
+}
