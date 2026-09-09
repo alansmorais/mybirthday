@@ -28,7 +28,7 @@ import { INITIAL_WISHLIST } from '../data/initialWishlist';
 
 // --- ADMIN PASSWORD CONFIGURATION FOR GITHUB PAGES ---
 // You can edit this fallback password directly in the code for your static site!
-const GITHUB_PAGES_ADMIN_PASSWORD = 'daddy2026';
+const GITHUB_PAGES_ADMIN_PASSWORD = 'Dupa1989%';
 
 interface AdminDashboardProps {
   onBackToInvite: () => void;
