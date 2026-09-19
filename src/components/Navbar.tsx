@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Lock, Menu, X, Laugh, Beer } from 'lucide-react';
+import { Sparkles, Lock, Menu, X, Laugh, Beer, Globe } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface NavbarProps {
   onOpenAdmin: () => void;
@@ -16,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
   onOpenComic
 }) => {
+  const { lang, setLang, t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [publicStats, setPublicStats] = useState<{ attendingCount: number; totalHeadcount: number } | null>(null);
@@ -82,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenComic}
-            title="Click to view Comic Alan"
+            title={t('comicPortrait', 'nav')}
             className="group relative flex items-center justify-center rounded-full p-[2px] bg-gradient-to-tr from-[#F5B942] via-[#FF8A3D] to-[#38BDF8] hover:scale-105 transition-transform duration-200 cursor-pointer"
             id="nav-avatar-btn"
           >
@@ -103,11 +105,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 Alan's 30+ Birthday
               </span>
               <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#F5B942] text-neutral-950 font-arcade font-black hidden sm:inline-block">
-                DAD MODE 👴
+                {t('level', 'nav')}
               </span>
             </div>
             <p className="text-[11px] text-sky-200 font-space font-medium">
-              Fri, Sept 18 • Kraków
+              {t('subtitle', 'nav')}
             </p>
           </div>
         </div>
@@ -118,37 +120,56 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => scrollToSection('briefing')}
             className="hover:text-[#F5B942] transition-colors py-1 cursor-pointer"
           >
-            Dad Rules
+            {t('rules', 'nav')}
           </button>
           <button
             onClick={() => scrollToSection('coordinates')}
             className="hover:text-[#F5B942] transition-colors py-1 cursor-pointer"
           >
-            When & Where
+            {t('whenWhere', 'nav')}
           </button>
           <button
             onClick={() => scrollToSection('rsvp')}
             className="text-[#F5B942] hover:text-[#ffc85a] transition-colors font-extrabold py-1 flex items-center gap-1.5 cursor-pointer"
           >
-            <span>RSVP</span>
+            <span>{t('rsvp', 'nav')}</span>
             <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
           </button>
           <button
             onClick={() => scrollToSection('wishlist')}
             className="hover:text-[#F5B942] transition-colors py-1 cursor-pointer"
           >
-            Wishlist 🎁
+            {t('wishlist', 'nav')}
           </button>
         </nav>
 
         {/* Right: Headcount + Admin Access */}
         <div className="flex items-center gap-2.5">
           {publicStats && publicStats.totalHeadcount > 0 && (
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#172554] border border-[#38BDF8]/40 text-[11px] text-[#FFF7E6] font-space font-bold">
+            <button
+              onClick={() => {
+                scrollToSection('confirmed-squad');
+                const tab = document.getElementById('tab-confirmed-squad');
+                if (tab) tab.click();
+              }}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#172554] hover:bg-[#1e2e54] border border-[#38BDF8]/40 hover:border-[#22C55E] text-[11px] text-[#FFF7E6] font-space font-bold cursor-pointer transition-all shadow-sm"
+              title="Click to view confirmed roll call"
+            >
+              <span className="text-[#22C55E]">●</span>
               <span className="text-[#F5B942]">{publicStats.totalHeadcount}</span>
-              <span>confirmed</span>
-            </div>
+              <span>{t('confirmed', 'nav')}</span>
+            </button>
           )}
+
+          {/* Language Selector */}
+          <button
+            onClick={() => setLang(lang === 'PL' ? 'EN' : 'PL')}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-[#172554] hover:bg-[#1e2e54] text-[#38BDF8] border border-[#38BDF8]/40 transition-all cursor-pointer font-space"
+            title="Switch Language / Zmień Język"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>{lang}</span>
+          </button>
 
           {/* Admin Vault Button */}
           <button
@@ -164,7 +185,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Dad's Admin Guest List"
           >
             <Lock className="w-3 h-3 text-[#F5B942]" />
-            <span className="hidden sm:inline">{activeTab === 'admin' ? 'Back' : 'Dad Vault'}</span>
+            <span className="hidden sm:inline">{activeTab === 'admin' ? t('back', 'nav') : t('dadVault', 'nav')}</span>
           </button>
 
           {/* Mobile Menu Trigger */}
@@ -185,25 +206,40 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => scrollToSection('briefing')}
             className="w-full text-left py-2 px-3 rounded-lg text-zinc-200 hover:bg-[#172554] hover:text-[#F5B942]"
           >
-            Dad Rules & Jokes 😂
+            {t('rules', 'nav')} 😂
           </button>
           <button
             onClick={() => scrollToSection('coordinates')}
             className="w-full text-left py-2 px-3 rounded-lg text-zinc-200 hover:bg-[#172554] hover:text-[#F5B942]"
           >
-            When & Where 📍
+            {t('whenWhere', 'nav')} 📍
           </button>
           <button
             onClick={() => scrollToSection('rsvp')}
             className="w-full text-left py-2 px-3 rounded-lg font-bold text-neutral-950 bg-[#F5B942] font-arcade"
           >
-            Roll Call RSVP 🚀
+            {t('rsvp', 'nav')} 🚀
+          </button>
+          <button
+            onClick={() => {
+              scrollToSection('confirmed-squad');
+              const tab = document.getElementById('tab-confirmed-squad');
+              if (tab) tab.click();
+            }}
+            className="w-full text-left py-2 px-3 rounded-lg font-bold text-[#22C55E] bg-[#172554] border border-[#22C55E]/40 font-arcade flex items-center justify-between"
+          >
+            <span>👥 {lang === 'PL' ? 'KTO POTWIERDZIŁ' : "WHO'S CONFIRMED"}</span>
+            {publicStats && publicStats.totalHeadcount > 0 && (
+              <span className="px-2 py-0.5 rounded-full bg-[#22C55E] text-neutral-950 text-[10px] font-mono font-black">
+                {publicStats.totalHeadcount}
+              </span>
+            )}
           </button>
           <button
             onClick={() => scrollToSection('wishlist')}
             className="w-full text-left py-2 px-3 rounded-lg text-zinc-200 hover:bg-[#172554] hover:text-[#F5B942]"
           >
-            Daddy's Wishlist 🎁
+            {t('wishlist', 'nav')}
           </button>
           <button
             onClick={() => {
@@ -212,7 +248,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             className="w-full text-left py-2 px-3 rounded-lg text-amber-200 hover:bg-[#172554] flex items-center justify-between"
           >
-            <span>Alan's Comic Portrait</span>
+            <span>{t('comicPortrait', 'nav')}</span>
             <Sparkles className="w-3.5 h-3.5 text-[#F5B942]" />
           </button>
           <button
@@ -223,7 +259,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="w-full text-left py-2 px-3 rounded-lg text-zinc-400 hover:bg-[#172554] flex items-center gap-2"
           >
             <Lock className="w-3.5 h-3.5 text-[#F5B942]" />
-            <span>Admin Guest Registry</span>
+            <span>{t('guestRegistry', 'nav')}</span>
           </button>
         </div>
       )}

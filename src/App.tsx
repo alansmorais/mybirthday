@@ -11,6 +11,7 @@ import { RsvpSection } from './components/RsvpSection';
 import { WishlistSection } from './components/WishlistSection';
 import { ComicPortraitModal } from './components/ComicPortraitModal';
 import { AdminDashboard } from './components/AdminDashboard';
+import { LanguageSelectionModal } from './components/LanguageSelectionModal';
 import { Footer } from './components/Footer';
 import { RsvpSubmission } from './types';
 
@@ -49,6 +50,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0a0f1d] text-[#FFF7E6] font-sans selection:bg-[#F5B942]/40 selection:text-[#FFF7E6]">
+      {/* Language Selection Modal */}
+      <LanguageSelectionModal />
+
       {/* Retro Navigation Bar */}
       <Navbar
         onOpenAdmin={handleOpenAdmin}
@@ -92,6 +96,7 @@ export default function App() {
               onRsvpSubmitted={(rsvp) => {
                 console.log('RSVP submitted successfully:', rsvp);
               }}
+              onOpenAdmin={handleOpenAdmin}
             />
 
             {/* 9. Optional Tribute (Daddy's Wishlist with Anonymous Reservations) */}

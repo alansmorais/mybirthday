@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, RefreshCw, Laugh, ShieldCheck, Flame, Wrench, Navigation, Tv, Beer, Tag } from 'lucide-react';
-import { DAD_JOKES, DadJoke } from '../data/dadJokes';
+import { Sparkles, RefreshCw, Laugh } from 'lucide-react';
+import { DAD_JOKES_EN, DAD_JOKES_PL, DadJoke } from '../data/dadJokes';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DadRulesSection: React.FC = () => {
+  const { lang, t } = useLanguage();
   const [jokeIndex, setJokeIndex] = useState(0);
   const [isRotating, setIsRotating] = useState(false);
+
+  const dadJokes = lang === 'PL' ? DAD_JOKES_PL : DAD_JOKES_EN;
 
   const rules = [
     {
       num: "01",
       emoji: "🍺",
-      badge: "ECONOMICS",
-      title: "Dad Rule #1",
-      quote: "If it's on sale, I saved money.",
-      subtext: "Even if we didn't need 48 cans of craft lager.",
+      badge: t('rule1Badge', 'rules'),
+      title: t('rule1Title', 'rules'),
+      quote: t('rule1Quote', 'rules'),
+      subtext: t('rule1Sub', 'rules'),
       borderColor: "border-[#F5B942]",
       badgeBg: "bg-[#F5B942] text-neutral-950",
       glowColor: "hover:shadow-[#F5B942]/20"
@@ -22,10 +26,10 @@ export const DadRulesSection: React.FC = () => {
     {
       num: "02",
       emoji: "🧠",
-      badge: "WISDOM",
-      title: "Dad Rule #2",
-      quote: "I don't need Google. I remember approximately how things work.",
-      subtext: "And by approximately, I mean 35% accuracy with 100% confidence.",
+      badge: t('rule2Badge', 'rules'),
+      title: t('rule2Title', 'rules'),
+      quote: t('rule2Quote', 'rules'),
+      subtext: t('rule2Sub', 'rules'),
       borderColor: "border-[#38BDF8]",
       badgeBg: "bg-[#38BDF8] text-neutral-950",
       glowColor: "hover:shadow-[#38BDF8]/20"
@@ -33,10 +37,10 @@ export const DadRulesSection: React.FC = () => {
     {
       num: "03",
       emoji: "🔧",
-      badge: "HANDYMAN",
-      title: "Dad Rule #3",
-      quote: "I can fix it. Whether I should fix it is another question.",
-      subtext: "WD-40 and duct tape solve 99% of civilization's problems.",
+      badge: t('rule3Badge', 'rules'),
+      title: t('rule3Title', 'rules'),
+      quote: t('rule3Quote', 'rules'),
+      subtext: t('rule3Sub', 'rules'),
       borderColor: "border-[#FF8A3D]",
       badgeBg: "bg-[#FF8A3D] text-neutral-950",
       glowColor: "hover:shadow-[#FF8A3D]/20"
@@ -44,10 +48,10 @@ export const DadRulesSection: React.FC = () => {
     {
       num: "04",
       emoji: "🚗",
-      badge: "NAVIGATION",
-      title: "Dad Rule #4",
-      quote: "The correct route is whichever route Dad chooses.",
-      subtext: "GPS is just a suggestion. I know a shortcut through the industrial park.",
+      badge: t('rule4Badge', 'rules'),
+      title: t('rule4Title', 'rules'),
+      quote: t('rule4Quote', 'rules'),
+      subtext: t('rule4Sub', 'rules'),
       borderColor: "border-[#22C55E]",
       badgeBg: "bg-[#22C55E] text-neutral-950",
       glowColor: "hover:shadow-[#22C55E]/20"
@@ -55,10 +59,10 @@ export const DadRulesSection: React.FC = () => {
     {
       num: "05",
       emoji: "📺",
-      badge: "CLIMATE",
-      title: "Dad Rule #5",
-      quote: "Nobody touches the thermostat.",
-      subtext: "Put on a cardigan or prepare to face the Supreme Court of Alan.",
+      badge: t('rule5Badge', 'rules'),
+      title: t('rule5Title', 'rules'),
+      quote: t('rule5Quote', 'rules'),
+      subtext: t('rule5Sub', 'rules'),
       borderColor: "border-[#F43F5E]",
       badgeBg: "bg-[#F43F5E] text-neutral-950",
       glowColor: "hover:shadow-[#F43F5E]/20"
@@ -66,10 +70,10 @@ export const DadRulesSection: React.FC = () => {
     {
       num: "06",
       emoji: "💸",
-      badge: "BAR POLICY",
-      title: "Dad Rule #6",
-      quote: "Everyone pays for themselves. Daddy is generous, not stupid.",
-      subtext: "Daddy has many talents. Funding 15 adults' bar tabs is not one of them.",
+      badge: t('rule6Badge', 'rules'),
+      title: t('rule6Title', 'rules'),
+      quote: t('rule6Quote', 'rules'),
+      subtext: t('rule6Sub', 'rules'),
       borderColor: "border-[#A855F7]",
       badgeBg: "bg-[#A855F7] text-white",
       glowColor: "hover:shadow-[#A855F7]/20"
@@ -79,12 +83,12 @@ export const DadRulesSection: React.FC = () => {
   const handleNextJoke = () => {
     setIsRotating(true);
     setTimeout(() => {
-      setJokeIndex((prev) => (prev + 1) % DAD_JOKES.length);
+      setJokeIndex((prev) => (prev + 1) % dadJokes.length);
       setIsRotating(false);
     }, 150);
   };
 
-  const currentJoke: DadJoke = DAD_JOKES[jokeIndex];
+  const currentJoke: DadJoke = dadJokes[jokeIndex] || dadJokes[0];
 
   return (
     <section id="briefing" className="py-12 px-4 relative">
@@ -94,13 +98,13 @@ export const DadRulesSection: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#F5B942] text-[#F5B942] text-xs font-arcade uppercase tracking-wider sticker-badge">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>THE SACRED CONSTITUTION</span>
+            <span>{t('badge', 'rules')}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold">
-            DAD RULES™
+            {t('title', 'rules')}
           </h2>
           <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic max-w-lg mx-auto">
-            "Rules established over three decades of questionable decisions and standing with hands on hips."
+            {t('subtext', 'rules')}
           </p>
         </div>
 
@@ -152,7 +156,7 @@ export const DadRulesSection: React.FC = () => {
           {/* Top arcade badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/20 border border-[#38BDF8] text-[#38BDF8] text-xs font-arcade uppercase tracking-wider mb-3">
             <Laugh className="w-3.5 h-3.5" />
-            <span>INTERACTIVE DAD JOKE DISPENSER</span>
+            <span>{t('dispenserTitle', 'rules')}</span>
           </div>
 
           <AnimatePresence mode="wait">
@@ -182,7 +186,7 @@ export const DadRulesSection: React.FC = () => {
               className="px-5 py-2.5 rounded-xl bg-[#F5B942] hover:bg-[#ffc85a] text-neutral-950 font-arcade text-xs uppercase tracking-wider font-black flex items-center gap-2 transition-all cursor-pointer shadow-md hover:scale-105 active:scale-95"
             >
               <RefreshCw className={`w-4 h-4 ${isRotating ? 'animate-spin' : ''}`} />
-              <span>DISPENSE ANOTHER JOKE ({jokeIndex + 1}/{DAD_JOKES.length})</span>
+              <span>{t('dispenserBtn', 'rules')} ({jokeIndex + 1}/{dadJokes.length})</span>
             </button>
           </div>
         </motion.div>

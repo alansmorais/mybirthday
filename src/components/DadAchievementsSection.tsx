@@ -1,63 +1,66 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Trophy, Award, Star, CheckCircle, Flame, Moon, Tv, Hammer } from 'lucide-react';
+import { Trophy } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DadAchievementsSection: React.FC = () => {
+  const { t } = useLanguage();
+
   const achievements = [
     {
-      title: "MASTER OF DAD JOKES",
-      desc: "Delivered 500+ puns without breaking eye contact or apologizing.",
+      title: t('ach1Title', 'achievements'),
+      desc: t('ach1Desc', 'achievements'),
       icon: "🎙️",
-      tier: "LEGENDARY",
+      tier: t('ach1Tier', 'achievements'),
       badgeColor: "border-[#F5B942] bg-[#F5B942]/10 text-[#F5B942]"
     },
     {
-      title: "PROFESSIONAL BBQ OPINION HOLDER",
-      desc: "Stood near an open flame with tongs and clicked them twice for calibration.",
+      title: t('ach2Title', 'achievements'),
+      desc: t('ach2Desc', 'achievements'),
       icon: "🥩",
-      tier: "GOLD",
+      tier: t('ach2Tier', 'achievements'),
       badgeColor: "border-[#FF8A3D] bg-[#FF8A3D]/10 text-[#FF8A3D]"
     },
     {
-      title: "REMOTE CONTROL GUARDIAN",
-      desc: "Held onto the TV clicker for 3 straight hours while 'resting eyes'.",
+      title: t('ach3Title', 'achievements'),
+      desc: t('ach3Desc', 'achievements'),
       icon: "📺",
-      tier: "PLATINUM",
+      tier: t('ach3Tier', 'achievements'),
       badgeColor: "border-[#38BDF8] bg-[#38BDF8]/10 text-[#38BDF8]"
     },
     {
-      title: "CAN FALL ASLEEP ANYWHERE",
-      desc: "Asleep within 45 seconds in a moderately comfortable armchair.",
+      title: t('ach4Title', 'achievements'),
+      desc: t('ach4Desc', 'achievements'),
       icon: "😴",
-      tier: "UNSTOPPABLE",
+      tier: t('ach4Tier', 'achievements'),
       badgeColor: "border-[#A855F7] bg-[#A855F7]/10 text-[#A855F7]"
     },
     {
-      title: '"ASK YOUR MOTHER" EXPERT',
-      desc: "Mastered the art of total bureaucratic delegation in under 2 seconds.",
+      title: t('ach5Title', 'achievements'),
+      desc: t('ach5Desc', 'achievements'),
       icon: "🧙‍♂️",
-      tier: "GRANDMASTER",
+      tier: t('ach5Tier', 'achievements'),
       badgeColor: "border-[#22C55E] bg-[#22C55E]/10 text-[#22C55E]"
     },
     {
-      title: "FIXED SOMETHING BY HITTING IT",
-      desc: "Percussive maintenance restored functionality to an electronic device.",
+      title: t('ach6Title', 'achievements'),
+      desc: t('ach6Desc', 'achievements'),
       icon: "🔨",
-      tier: "MYTHIC",
+      tier: t('ach6Tier', 'achievements'),
       badgeColor: "border-[#F43F5E] bg-[#F43F5E]/10 text-[#F43F5E]"
     },
     {
-      title: 'SAID "I\'M NOT TIRED" WHILE TIRED',
-      desc: "Yawned with jaw-breaking force before denying all fatigue.",
+      title: t('ach7Title', 'achievements'),
+      desc: t('ach7Desc', 'achievements'),
       icon: "🥱",
-      tier: "MAX LEVEL",
+      tier: t('ach7Tier', 'achievements'),
       badgeColor: "border-[#F5B942] bg-[#F5B942]/10 text-[#F5B942]"
     },
     {
-      title: "RECEIPT INSPECTOR GENERAL",
-      desc: "Examined the restaurant bill as if auditing NASA's annual expenditure.",
+      title: t('ach8Title', 'achievements'),
+      desc: t('ach8Desc', 'achievements'),
       icon: "🧾",
-      tier: "EPIC",
+      tier: t('ach8Tier', 'achievements'),
       badgeColor: "border-[#38BDF8] bg-[#38BDF8]/10 text-[#38BDF8]"
     }
   ];
@@ -69,13 +72,13 @@ export const DadAchievementsSection: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#22C55E] text-[#22C55E] text-xs font-arcade uppercase tracking-wider sticker-badge">
             <Trophy className="w-3.5 h-3.5" />
-            <span>GAMER SCORE: 9,999+</span>
+            <span>{t('badge', 'achievements')}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold">
-            DAD ACHIEVEMENTS UNLOCKED
+            {t('title', 'achievements')}
           </h2>
           <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic max-w-lg mx-auto">
-            "Rare badges earned through rigorous years of suburban excellence."
+            {t('subtext', 'achievements')}
           </p>
         </div>
 

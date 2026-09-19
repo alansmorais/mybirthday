@@ -1,19 +1,21 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, RefreshCw, Laugh, Volume2 } from 'lucide-react';
-import { DAD_JOKES, DadJoke } from '../data/dadJokes';
+import { RefreshCw, Laugh } from 'lucide-react';
+import { DAD_JOKES_PL, DAD_JOKES_EN, DadJoke } from '../data/dadJokes';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DadJokeWidget: React.FC = () => {
+  const { lang, t } = useLanguage();
   const [jokeIndex, setJokeIndex] = useState(0);
-  const [showPunchline, setShowPunchline] = useState(true);
   const [isRotating, setIsRotating] = useState(false);
 
-  const currentJoke: DadJoke = DAD_JOKES[jokeIndex];
+  const jokeList = lang === 'PL' ? DAD_JOKES_PL : DAD_JOKES_EN;
+  const currentJoke: DadJoke = jokeList[jokeIndex] || jokeList[0];
 
   const handleNextJoke = () => {
     setIsRotating(true);
     setTimeout(() => {
-      setJokeIndex((prev) => (prev + 1) % DAD_JOKES.length);
+      setJokeIndex((prev) => (prev + 1) % jokeList.length);
       setIsRotating(false);
     }, 150);
   };
@@ -26,13 +28,13 @@ export const DadJokeWidget: React.FC = () => {
       {/* Top pill */}
       <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-mono font-semibold uppercase tracking-wider mb-3">
         <Laugh className="w-3.5 h-3.5 text-amber-400" />
-        <span>OFFICIAL DAD JOKE DISPENSER</span>
+        <span>{t('jokeDispenser', 'rules')}</span>
       </div>
 
       {/* Joke Display Card */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={jokeIndex}
+          key={jokeIndex + '_' + lang}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
@@ -58,7 +60,7 @@ export const DadJokeWidget: React.FC = () => {
           className="px-4 py-2 rounded-xl bg-[#1c202d] hover:bg-[#262c3e] border border-amber-500/30 text-amber-300 text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isRotating ? 'animate-spin' : ''}`} />
-          <span>Tap for Another Dad Joke ({jokeIndex + 1}/{DAD_JOKES.length})</span>
+          <span>{t('nextJoke', 'rules')} ({jokeIndex + 1}/{jokeList.length})</span>
         </button>
       </div>
     </div>

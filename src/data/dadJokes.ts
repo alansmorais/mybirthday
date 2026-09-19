@@ -4,7 +4,7 @@ export interface DadJoke {
   reaction: string;
 }
 
-export const DAD_JOKES: DadJoke[] = [
+export const DAD_JOKES_EN: DadJoke[] = [
   {
     setup: "I only know 25 letters of the alphabet.",
     punchline: "I don't know Y.",
@@ -26,7 +26,7 @@ export const DAD_JOKES: DadJoke[] = [
     reaction: "🍳 Front-right burner is superior."
   },
   {
-    setup: "What did the bartender say when Alan walked into Beer Street?",
+    setup: "What did the bartender say when Alan walked into Lindo Bar?",
     punchline: "Why the long face? Alan: I'm not sad, that's just gravity settling in after 30.",
     reaction: "🍺 Pour him a double IPA."
   },
@@ -87,7 +87,70 @@ export const DAD_JOKES: DadJoke[] = [
   }
 ];
 
-export const TICKER_JOKES: string[] = [
+export const DAD_JOKES_PL: DadJoke[] = [
+  {
+    setup: "Jak nazywa się upieczony chleb, który śpiewa?",
+    punchline: "Chleb-estrada!",
+    reaction: "🥖 Klasyczny suchar ze piekarni."
+  },
+  {
+    setup: "Dlaczego Alan kończy w tym roku 30 lat?",
+    punchline: "Bo czas nie pyta, a jego kolana biją brawo przy każdym wstawaniu z kanapy.",
+    reaction: "👴 *strzyka w kręgosłupie na samą myśl*"
+  },
+  {
+    setup: "Jak Alan poznaje, że jest oficjalnie po trzydziestce?",
+    punchline: "Ma swój ulubiony palnik na kuchence i silne opinie o kosiarkach do trawy.",
+    reaction: "🍳 Palnik prawy przód to absolutny król."
+  },
+  {
+    setup: "Co powiedział barman, gdy Alan wszedł do Lindo Bar?",
+    punchline: "Czemu taka kwaśna mina? Alan: Nie jestem smutny, to po prostu grawitacja po trzydziestce.",
+    reaction: "🍺 Nalejcie mu podwójne IPA."
+  },
+  {
+    setup: "Dlaczego rower Alana nie potrafi sam stać?",
+    punchline: "Bo jest za-koła-any! (I zmęczony życiem jak Alan o 21:45).",
+    reaction: "🚲 Spanko o 22:00 obowiązkowe."
+  },
+  {
+    setup: "Gdzie drwale kupują herbatę?",
+    punchline: "W tartaku!",
+    reaction: "🌲 *jęki wokół stołu*"
+  },
+  {
+    setup: "Jak nazywa się żona pingwina?",
+    punchline: "Pingwinowa!",
+    reaction: "🐧 Solidne, logiczne żartownictwo."
+  },
+  {
+    setup: "Co robi 30-latek na imprezie?",
+    punchline: "Pilnuje termostatu i narzeka na przeciągi ze drzwi.",
+    reaction: "🥶 Zamknij te drzwi, chłodem wieje!"
+  },
+  {
+    setup: "Co mówi zero do ósemki?",
+    punchline: "Fajny pasek!",
+    reaction: "0️⃣ Dobra stylówka na weekend."
+  },
+  {
+    setup: "Dlaczego pomidor zrobił się czerwony?",
+    punchline: "Bo zobaczył sos winegret w samej sałacie!",
+    reaction: "🥗 Skandalicznie nieprzyzwoite."
+  },
+  {
+    setup: "Czytam książkę o grawitacji...",
+    punchline: "I naprawdę nie mogę jej odłożyć.",
+    reaction: "📖 Ciężka lektura."
+  },
+  {
+    setup: "Jakie jest ulubione danie taty na budowie?",
+    punchline: "Kebab na cienkim... tynku!",
+    reaction: "🧱 Remont zrobiony pomyślnie."
+  }
+];
+
+export const TICKER_JOKES_EN: string[] = [
   "DAD JOKE TICKER: I only know 25 letters of the alphabet. I don't know Y.",
   "MY BACK GOES OUT MORE THAN I DO.",
   "30+ YEARS OF EXPERIENCE. STILL NO USER MANUAL.",
@@ -101,4 +164,20 @@ export const TICKER_JOKES: string[] = [
   "REMEMBER: EVERYONE PAYS FOR THEMSELVES. DADDY IS GENEROUS, NOT STUPID.",
   "I DON'T SNORE. I DREAM I'M A 1980S MOTORCYCLE.",
   "YOU ARE LEGALLY REQUIRED TO ROLL YOUR EYES."
+];
+
+export const TICKER_JOKES_PL: string[] = [
+  "SUCHAR DNIA: Jak nazywa się upieczony chleb, który śpiewa? Chleb-estrada!",
+  "MÓJ KRĘGOSŁUP WYCHODZI CZĘŚCIEJ NIŻ JA SAM.",
+  "30 LAT DOŚWIADCZENIA. WCIĄŻ BRAK INSTRUKCJI OBSŁUGI.",
+  "NIE JESTEM STARY, PO PROSTU MOJE UTRZYMANIE JEST CORAZ DROŻSZE.",
+  "UWAGA: NIKT NIE MOŻE DOTYKAĆ TERMOSTATU.",
+  "MOJE KOLANA STRZYKAJĄ GŁOŚNIEJ NIŻ MÓWIĘ MOJE ŻARTY.",
+  "NIE POTRZEBUJĘ GOOGLE, WIEM MNIEJ WIĘCEJ JAK DZIAŁA ŚWIAT.",
+  "PEWNOŚĆ SIEBIE: 99% | WIEDZA REALNA: 42%",
+  "DOŚWIADCZENIE: WYSOKIE | MĄDROŚĆ: W TOKU | SEN: 22:00",
+  "MÓJ ŻOŁĄDEK POSIADA TERAZ REGULAMIN I WARUNKI KORZYSTANIA.",
+  "PAMIĘTAJ: KAŻDY PŁACI ZA SIEBIE. TATA JEST HOJNY, ALE NIE GŁUPI.",
+  "NIE CHRAPIĘ. PO PROSTU ŚNIĘ, ŻE JESTEM RETRO MOTOCYKLEM.",
+  "USTAWOWY OBOWIĄZEK PRZEWRACANIA OCZAMI NA TE TEKSTY."
 ];

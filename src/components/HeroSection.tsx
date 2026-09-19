@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Sparkles, ArrowRight, Gift, Calendar, MapPin, Beer, Laugh, Star, Zap, ShieldAlert, Award } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeroSectionProps {
   onScrollToRsvp: () => void;
@@ -13,6 +14,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onScrollToWishlist,
   onOpenComic
 }) => {
+  const { t } = useLanguage();
   const AVATAR_URL = 'https://avatars.githubusercontent.com/u/78435965?s=400&u=085533adc24d2ec6471affc4d4bc6ea051882a28&v=4';
 
   return (
@@ -23,25 +25,25 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Floating Retro 80s Stickers */}
       <div className="absolute top-20 left-4 sm:left-12 hidden md:block rotate-[-8deg] pointer-events-none z-0">
         <div className="px-3 py-1.5 rounded-lg bg-[#F5B942] text-neutral-950 font-arcade text-[11px] font-black tracking-wider uppercase border-2 border-neutral-950 sticker-badge shadow-lg">
-          ★ LIMITED EDITION DAD ★
+          {t('sticker1', 'hero')}
         </div>
       </div>
 
       <div className="absolute top-28 right-4 sm:right-12 hidden md:block rotate-[6deg] pointer-events-none z-0">
         <div className="px-3 py-1.5 rounded-lg bg-[#38BDF8] text-neutral-950 font-arcade text-[11px] font-black tracking-wider uppercase border-2 border-neutral-950 sticker-badge shadow-lg">
-          ⚡ 30+ YEARS EXPERIENCE ⚡
+          {t('sticker2', 'hero')}
         </div>
       </div>
 
       <div className="absolute bottom-16 left-6 sm:left-16 hidden lg:block rotate-[4deg] pointer-events-none z-0">
         <div className="px-3 py-1.5 rounded-lg bg-[#22C55E] text-neutral-950 font-arcade text-[10px] font-black tracking-wider uppercase border-2 border-neutral-950 sticker-badge shadow-lg">
-          ✓ STILL NO USER MANUAL
+          {t('sticker3', 'hero')}
         </div>
       </div>
 
       <div className="absolute bottom-20 right-6 sm:right-16 hidden lg:block rotate-[-6deg] pointer-events-none z-0">
         <div className="px-3 py-1.5 rounded-lg bg-[#FF8A3D] text-neutral-950 font-arcade text-[10px] font-black tracking-wider uppercase border-2 border-neutral-950 sticker-badge shadow-lg">
-          🔥 EXTRA DAD JOKES INSIDE
+          {t('sticker4', 'hero')}
         </div>
       </div>
 
@@ -54,7 +56,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#172554] border-2 border-[#F5B942] text-[#F5B942] text-xs font-arcade uppercase tracking-widest mb-6 sticker-badge shadow-md"
         >
           <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-          <span>DAD MODE: ACTIVATED • LEVEL 30+</span>
+          <span>{t('badgeText', 'hero')}</span>
         </motion.div>
 
         {/* Alan's Photo with 80s Comic Burst & Colorful Outline */}
@@ -80,7 +82,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           {/* Sarcastic Speech / Sticker Badge */}
           <div className="absolute -bottom-2 -right-4 bg-[#FF8A3D] text-neutral-950 font-arcade font-black text-[11px] px-3 py-1 rounded-xl shadow-xl flex items-center gap-1.5 border-2 border-neutral-950 group-hover:scale-110 transition-transform sticker-badge">
-            <span>😂 MEET THE DAD</span>
+            <span>{t('meetDad', 'hero')}</span>
           </div>
 
           {/* Top Left Mini Badge */}
@@ -97,10 +99,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           className="mb-4"
         >
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-cinzel font-black tracking-wider text-retro-gold drop-shadow-md leading-none">
-            ALAN IS 30+
+            {t('title', 'hero')}
           </h1>
           <p className="text-base sm:text-xl font-space font-bold uppercase tracking-wider text-[#38BDF8] mt-2">
-            (AND OFFICIALLY LICENSED TO MAKE TERRIBLE DAD JOKES)
+            {t('subtitle', 'hero')}
           </p>
         </motion.div>
 
@@ -112,10 +114,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           className="mb-7 space-y-2 max-w-xl mx-auto"
         >
           <p className="text-lg sm:text-xl text-[#FFF7E6] font-playfair italic font-semibold">
-            "Hi 30+, I'm Dad. My knees now make more noise than my jokes."
+            {t('quote', 'hero')}
           </p>
           <p className="text-xs sm:text-sm text-amber-200/90 font-sans">
-            "30+ years of experience. Still no idea what I'm doing. Come celebrate with craft beers, laughter, and zero adult responsibilities."
+            {t('subtext', 'hero')}
           </p>
         </motion.div>
 
@@ -128,11 +130,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         >
           <div className="px-4 py-2 rounded-xl bg-[#172554] border-2 border-[#F5B942] text-xs font-space font-bold text-[#FFF7E6] flex items-center gap-2 shadow-md">
             <Calendar className="w-4 h-4 text-[#F5B942]" />
-            <span>Friday • 18 September 2026</span>
+            <span>{t('date', 'common')}</span>
           </div>
           <div className="px-4 py-2 rounded-xl bg-[#172554] border-2 border-[#38BDF8] text-xs font-space font-bold text-[#FFF7E6] flex items-center gap-2 shadow-md">
             <MapPin className="w-4 h-4 text-[#38BDF8]" />
-            <span>Beer Street, Kraków • ~19:30</span>
+            <span>{t('location', 'common')}</span>
           </div>
         </motion.div>
 
@@ -149,7 +151,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             id="hero-rsvp-btn"
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#F5B942] hover:bg-[#ffc85a] text-neutral-950 font-arcade text-xs sm:text-sm uppercase tracking-wider font-black hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg border-2 border-neutral-950 sticker-badge cursor-pointer"
           >
-            <span>RSVP (Say YES)</span>
+            <span>{t('rsvpBtn', 'hero')}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
@@ -160,7 +162,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#172554] hover:bg-[#1e2e54] text-[#38BDF8] hover:text-[#FFF7E6] font-arcade text-xs sm:text-sm uppercase tracking-wider font-black border-2 border-[#38BDF8] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer sticker-badge"
           >
             <span>🎁</span>
-            <span>DADDY'S WISHLIST</span>
+            <span>{t('wishlistBtn', 'hero')}</span>
           </button>
         </motion.div>
       </div>

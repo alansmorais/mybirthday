@@ -1,32 +1,41 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Battery, Zap, Flame, Clock, Car, Coffee, ShieldAlert } from 'lucide-react';
+import { Clock } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const AgeComparisonSection: React.FC = () => {
+  const { t } = useLanguage();
+
   const comparisons = [
     {
-      category: "ENERGY METRICS",
-      icon: "⚡",
-      twenties: "Unlimited battery life, runs on adrenaline & fast food.",
-      thirties: "Needs 2 business days of recovery after a long nap."
+      category: t('row1Label', 'comparison'),
+      icon: "🩹",
+      twenties: t('row1Val20s', 'comparison'),
+      thirties: t('row1Val30s', 'comparison')
     },
     {
-      category: "GOING OUT LOGISTICS",
-      icon: "🚗",
-      twenties: "Let's head out at midnight without a plan!",
-      thirties: "What is the parking situation and how loud is the music?"
+      category: t('row2Label', 'comparison'),
+      icon: "📅",
+      twenties: t('row2Val20s', 'comparison'),
+      thirties: t('row2Val30s', 'comparison')
     },
     {
-      category: "BEVERAGE TOLERANCE",
-      icon: "🍺",
-      twenties: "I can drink anything in any sequence.",
-      thirties: "My digestive tract has mandatory terms & conditions."
+      category: t('row3Label', 'comparison'),
+      icon: "🦴",
+      twenties: t('row3Val20s', 'comparison'),
+      thirties: t('row3Val30s', 'comparison')
     },
     {
-      category: "WEEKEND GOALS",
-      icon: "🛋️",
-      twenties: "Dance until 4 AM.",
-      thirties: "Visit Castorama, organize the garage, sleep by 21:30."
+      category: t('row4Label', 'comparison'),
+      icon: "🔊",
+      twenties: t('row4Val20s', 'comparison'),
+      thirties: t('row4Val30s', 'comparison')
+    },
+    {
+      category: t('row5Label', 'comparison'),
+      icon: "🍷",
+      twenties: t('row5Val20s', 'comparison'),
+      thirties: t('row5Val30s', 'comparison')
     }
   ];
 
@@ -37,17 +46,17 @@ export const AgeComparisonSection: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#FF8A3D] text-[#FF8A3D] text-xs font-arcade uppercase tracking-wider sticker-badge">
             <Clock className="w-3.5 h-3.5" />
-            <span>THE UPGRADE MATRIX</span>
+            <span>{t('badge', 'comparison')}</span>
           </div>
           <h2 className="text-4xl sm:text-6xl font-cinzel font-black tracking-wide text-retro-gold">
             30+
           </h2>
           <div className="space-y-1">
             <p className="text-xl sm:text-2xl font-cinzel font-bold text-[#FFF7E6]">
-              "Not old. Just increasingly expensive to maintain."
+              "{t('title', 'comparison')}"
             </p>
             <p className="text-xs sm:text-sm text-amber-200/80 font-playfair italic">
-              A comprehensive clinical comparison between youth and true maturity.
+              {t('subtext', 'comparison')}
             </p>
           </div>
         </div>
@@ -76,7 +85,7 @@ export const AgeComparisonSection: React.FC = () => {
                 {/* 20s */}
                 <div className="space-y-1 pr-2">
                   <span className="text-[10px] font-arcade px-2 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                    IN YOUR 20s
+                    {t('col20s', 'comparison')}
                   </span>
                   <p className="text-xs sm:text-sm text-zinc-300 font-sans mt-2">
                     "{item.twenties}"
@@ -86,7 +95,7 @@ export const AgeComparisonSection: React.FC = () => {
                 {/* 30+ */}
                 <div className="space-y-1 pl-4">
                   <span className="text-[10px] font-arcade px-2 py-0.5 rounded bg-[#F5B942] text-neutral-950 font-bold">
-                    AT 30+ (NOW)
+                    {t('col30s', 'comparison')}
                   </span>
                   <p className="text-xs sm:text-sm text-amber-200 font-bold font-sans mt-2">
                     "{item.thirties}"

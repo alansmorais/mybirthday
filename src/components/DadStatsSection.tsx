@@ -1,53 +1,56 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Activity, Zap, TrendingUp, AlertTriangle, Cpu, BarChart3, Wrench, Heart } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DadStatsSection: React.FC = () => {
+  const { t } = useLanguage();
+
   const stats = [
     {
       metric: "30+",
-      label: "YEARS ALIVE",
-      desc: "Mint condition with minor squeaking.",
+      label: t('stat1Label', 'stats'),
+      desc: t('stat1Desc', 'stats'),
       color: "text-[#F5B942]",
       border: "border-[#F5B942]",
       bg: "bg-[#F5B942]/10"
     },
     {
       metric: "87%",
-      label: "DAD JOKES TERRIBLE",
-      desc: "13% cause mild spontaneous chuckles.",
+      label: t('stat2Label', 'stats'),
+      desc: t('stat2Desc', 'stats'),
       color: "text-[#FF8A3D]",
       border: "border-[#FF8A3D]",
       bg: "bg-[#FF8A3D]/10"
     },
     {
       metric: "14",
-      label: "TOOLS HE CAN'T USE",
-      desc: "Purchased on impulse during a 2022 DIY phase.",
+      label: t('stat3Label', 'stats'),
+      desc: t('stat3Desc', 'stats'),
       color: "text-[#38BDF8]",
       border: "border-[#38BDF8]",
       bg: "bg-[#38BDF8]/10"
     },
     {
       metric: "∞",
-      label: "UNSOLICITED ADVICE",
-      desc: "Especially on route shortcuts and tire pressure.",
+      label: t('stat4Label', 'stats'),
+      desc: t('stat4Desc', 'stats'),
       color: "text-[#22C55E]",
       border: "border-[#22C55E]",
       bg: "bg-[#22C55E]/10"
     },
     {
       metric: "99%",
-      label: "CONFIDENCE",
-      desc: "Never in doubt about anything ever.",
+      label: t('stat5Label', 'stats'),
+      desc: t('stat5Desc', 'stats'),
       color: "text-[#F43F5E]",
       border: "border-[#F43F5E]",
       bg: "bg-[#F43F5E]/10"
     },
     {
       metric: "42%",
-      label: "ACTUAL KNOWLEDGE",
-      desc: "The other 58% is pure charisma and guesswork.",
+      label: t('stat6Label', 'stats'),
+      desc: t('stat6Desc', 'stats'),
       color: "text-[#A855F7]",
       border: "border-[#A855F7]",
       bg: "bg-[#A855F7]/10"
@@ -61,13 +64,13 @@ export const DadStatsSection: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#38BDF8] text-[#38BDF8] text-xs font-arcade uppercase tracking-wider sticker-badge">
             <Activity className="w-3.5 h-3.5" />
-            <span>DIAGNOSTIC TELEMETRY</span>
+            <span>{t('badge', 'stats')}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-cyan">
-            DAD PERFORMANCE REPORT™
+            {t('title', 'stats')}
           </h2>
           <p className="text-sm sm:text-base text-sky-200/90 font-playfair italic max-w-lg mx-auto">
-            "Audited by independent observers and verified by his orthopedic specialist."
+            {t('subtext', 'stats')}
           </p>
         </div>
 
@@ -102,9 +105,9 @@ export const DadStatsSection: React.FC = () => {
 
         {/* Humorous footnote sticker */}
         <div className="p-3.5 rounded-xl bg-[#172554] border border-[#38BDF8]/40 text-center text-xs font-space text-sky-200 flex flex-wrap items-center justify-center gap-2">
-          <span className="font-bold text-[#F5B942]">★ CERTIFIED 100% ORGANIC DAD MATERIAL ★</span>
+          <span className="font-bold text-[#F5B942]">{t('footerBadge', 'stats')}</span>
           <span>•</span>
-          <span>Warranty expired after year 29</span>
+          <span>{t('footerSub', 'stats')}</span>
         </div>
       </div>
     </section>

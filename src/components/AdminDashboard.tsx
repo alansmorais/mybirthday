@@ -121,8 +121,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           throw networkErr;
         }
         // Fallback for static GitHub Pages or server unreachable
-        const clientSideAdminPassword = (import.meta as any).env?.VITE_ADMIN_PASSWORD || GITHUB_PAGES_ADMIN_PASSWORD;
-        if (trimmedPassword === clientSideAdminPassword) {
+        const validClientPasswords = [
+          (import.meta as any).env?.VITE_ADMIN_PASSWORD,
+          GITHUB_PAGES_ADMIN_PASSWORD,
+          'daddy2026',
+          'Dupa1989%'
+        ].filter(Boolean);
+        if (validClientPasswords.includes(trimmedPassword)) {
           tokenToSave = trimmedPassword;
         } else {
           throw new Error('Incorrect password.');
@@ -488,29 +493,62 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
         {/* Total Headcount */}
-        <div className="p-4 rounded-2xl bg-[#111319] border border-amber-500/30 shadow-lg">
+        <button
+          onClick={() => {
+            setAdminTab('guests');
+            setStatusFilter('YES');
+          }}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
+            statusFilter === 'YES' && adminTab === 'guests'
+              ? 'bg-amber-500/20 border-2 border-amber-400 shadow-xl'
+              : 'bg-[#111319] border border-amber-500/30 hover:border-amber-400 shadow-lg'
+          }`}
+          title="Click to view confirmed guests only"
+        >
           <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
             Total Headcount
           </div>
           <div className="text-2xl sm:text-3xl font-cinzel font-black text-amber-300">
             {stats ? stats.totalHeadcount : 0}
           </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Confirmed attendees</div>
-        </div>
+          <div className="text-[10px] text-amber-400/90 font-medium mt-1">Confirmed attendees (Click)</div>
+        </button>
 
         {/* YES RSVPs */}
-        <div className="p-4 rounded-2xl bg-[#111319] border border-[#242836]">
+        <button
+          onClick={() => {
+            setAdminTab('guests');
+            setStatusFilter('YES');
+          }}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
+            statusFilter === 'YES' && adminTab === 'guests'
+              ? 'bg-emerald-500/20 border-2 border-emerald-400 shadow-xl'
+              : 'bg-[#111319] border border-[#242836] hover:border-emerald-500/50'
+          }`}
+          title="Click to view confirmed guests only"
+        >
           <div className="text-[11px] font-mono text-emerald-400 uppercase tracking-wider mb-1">
             Attending (YES)
           </div>
           <div className="text-2xl sm:text-3xl font-cinzel font-bold text-zinc-100">
             {stats ? stats.yesCount : 0}
           </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Confirmed parties</div>
-        </div>
+          <div className="text-[10px] text-emerald-400/80 mt-1">Confirmed parties (Click)</div>
+        </button>
 
         {/* MAYBE */}
-        <div className="p-4 rounded-2xl bg-[#111319] border border-[#242836]">
+        <button
+          onClick={() => {
+            setAdminTab('guests');
+            setStatusFilter('MAYBE');
+          }}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
+            statusFilter === 'MAYBE' && adminTab === 'guests'
+              ? 'bg-amber-500/20 border-2 border-amber-400 shadow-xl'
+              : 'bg-[#111319] border border-[#242836] hover:border-amber-500/50'
+          }`}
+          title="Click to view negotiating guests"
+        >
           <div className="text-[11px] font-mono text-amber-400 uppercase tracking-wider mb-1">
             Negotiating
           </div>
@@ -518,10 +556,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {stats ? stats.maybeCount : 0}
           </div>
           <div className="text-[10px] text-zinc-500 mt-1">Probable guests</div>
-        </div>
+        </button>
 
         {/* NO */}
-        <div className="p-4 rounded-2xl bg-[#111319] border border-[#242836]">
+        <button
+          onClick={() => {
+            setAdminTab('guests');
+            setStatusFilter('NO');
+          }}
+          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
+            statusFilter === 'NO' && adminTab === 'guests'
+              ? 'bg-red-500/20 border-2 border-red-400 shadow-xl'
+              : 'bg-[#111319] border border-[#242836] hover:border-red-500/50'
+          }`}
+          title="Click to view declined guests"
+        >
           <div className="text-[11px] font-mono text-red-400 uppercase tracking-wider mb-1">
             Declined (NO)
           </div>
@@ -529,7 +578,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {stats ? stats.noCount : 0}
           </div>
           <div className="text-[10px] text-zinc-500 mt-1">Disappointed Daddy</div>
-        </div>
+        </button>
 
         {/* Total Registrations */}
         <div className="p-4 rounded-2xl bg-[#111319] border border-[#242836]">

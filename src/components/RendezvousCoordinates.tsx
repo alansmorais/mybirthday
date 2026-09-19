@@ -1,24 +1,26 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Calendar, MapPin, ExternalLink, Check, Compass, Clock, Wallet, Beer, Utensils, Smile, Flame } from 'lucide-react';
+import { Calendar, MapPin, ExternalLink, Check, Compass, Clock, Wallet, Smile } from 'lucide-react';
 import { DadCasualDressCode } from './DadCasualDressCode';
 import { DadDisclaimerBox } from './DadDisclaimerBox';
+import { useLanguage } from '../context/LanguageContext';
 
 export const RendezvousCoordinates: React.FC = () => {
+  const { t } = useLanguage();
   const [copiedPin, setCopiedPin] = useState(false);
 
   const handleCopyLocation = () => {
-    navigator.clipboard.writeText('Kazimierz / Beer Street, Kraków, Poland');
+    navigator.clipboard.writeText('Lindo Bar - Sławkowska 23 - Kraków, Poland');
     setCopiedPin(true);
     setTimeout(() => setCopiedPin(false), 2500);
   };
 
   const handleAddToCalendar = () => {
-    const startTime = '20260918T173000Z'; // 19:30 CEST
-    const endTime = '20260918T233000Z';
+    const startTime = '20260925T173000Z'; // 19:30 CEST on Sep 25 is 17:30 UTC
+    const endTime = '20260925T233000Z';
     const title = encodeURIComponent("Alan's 30+ Birthday Party (Dad Mode Activated)");
     const details = encodeURIComponent("Alan's 30+ Birthday Party in Kraków! Craft beers, dad jokes, bad dancing & fun.");
-    const location = encodeURIComponent("Beer Street, Kazimierz, Kraków");
+    const location = encodeURIComponent("Lindo Bar - Sławkowska 23 - Kraków");
     const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
@@ -30,13 +32,13 @@ export const RendezvousCoordinates: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#F5B942] text-[#F5B942] text-xs font-arcade uppercase tracking-wider sticker-badge">
             <Compass className="w-3.5 h-3.5" />
-            <span>RADAR NAVIGATION</span>
+            <span>{t('badge', 'logistics')}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold">
-            THE EVENT LOGISTICS
+            {t('title', 'logistics')}
           </h2>
           <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic max-w-md mx-auto">
-            "Arrive on time, leave when Dad makes his second yawning announcement."
+            {t('subtext', 'logistics')}
           </p>
         </div>
 
@@ -47,22 +49,22 @@ export const RendezvousCoordinates: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-arcade px-2.5 py-1 rounded bg-[#F5B942] text-neutral-950 font-bold">
-                  📅 WHEN
+                  {t('whenBadge', 'logistics')}
                 </span>
                 <Clock className="w-4 h-4 text-[#F5B942]" />
               </div>
               <h3 className="text-xl font-cinzel font-bold text-[#FFF7E6]">
-                Friday • 18 September 2026
+                {t('whenTitle', 'logistics')}
               </h3>
               <p className="text-xs sm:text-sm text-zinc-300 font-sans">
-                Starts around <strong className="text-[#F5B942]">19:30</strong>. "If you are 15 minutes early, you're on time. If you are on time, you're late."
+                {t('whenDesc', 'logistics')}
               </p>
             </div>
             <button
               onClick={handleAddToCalendar}
               className="w-full py-2.5 px-4 rounded-xl bg-[#172554] hover:bg-[#1e2e54] border border-[#F5B942]/50 text-[#F5B942] text-xs font-arcade flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <span>ADD TO GOOGLE CALENDAR</span>
+              <span>{t('whenBtn', 'logistics')}</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -72,15 +74,15 @@ export const RendezvousCoordinates: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-arcade px-2.5 py-1 rounded bg-[#38BDF8] text-neutral-950 font-bold">
-                  📍 WHERE
+                  {t('whereBadge', 'logistics')}
                 </span>
                 <MapPin className="w-4 h-4 text-[#38BDF8]" />
               </div>
               <h3 className="text-xl font-cinzel font-bold text-[#FFF7E6]">
-                Beer Street, Kraków
+                {t('whereTitle', 'logistics')}
               </h3>
               <p className="text-xs sm:text-sm text-zinc-300 font-sans">
-                Kazimierz / Old Town sector. Exact pub coordinate will be broadcasted to confirmed guests.
+                {t('whereDesc', 'logistics')}
               </p>
             </div>
             <button
@@ -88,7 +90,7 @@ export const RendezvousCoordinates: React.FC = () => {
               className="w-full py-2.5 px-4 rounded-xl bg-[#172554] hover:bg-[#1e2e54] border border-[#38BDF8]/50 text-[#38BDF8] text-xs font-arcade flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               {copiedPin ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Compass className="w-3.5 h-3.5" />}
-              <span>{copiedPin ? 'COPIED TO CLIPBOARD!' : 'COPY LOCATION PIN'}</span>
+              <span>{copiedPin ? t('whereBtnCopied', 'logistics') : t('whereBtn', 'logistics')}</span>
             </button>
           </div>
 
@@ -97,21 +99,21 @@ export const RendezvousCoordinates: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-arcade px-2.5 py-1 rounded bg-[#FF8A3D] text-neutral-950 font-bold">
-                  🍺 THE PLAN
+                  {t('planBadge', 'logistics')}
                 </span>
                 <Smile className="w-4 h-4 text-[#FF8A3D]" />
               </div>
               <h3 className="text-lg font-cinzel font-bold text-[#FFF7E6]">
-                Beer. Food. Laughing. Questionable decisions.
+                {t('planTitle', 'logistics')}
               </h3>
               <ul className="text-xs text-zinc-300 space-y-1 font-sans">
-                <li>• 19:30 - Opening pints & initial knee-creak complaints</li>
-                <li>• 20:30 - Dad jokes & culinary sustenance</li>
-                <li>• 22:00 - Dad announces he's "not tired" while falling asleep</li>
+                <li>{t('planItem1', 'logistics')}</li>
+                <li>{t('planItem2', 'logistics')}</li>
+                <li>{t('planItem3', 'logistics')}</li>
               </ul>
             </div>
             <div className="text-[11px] font-space text-amber-300/80 italic">
-              "Agenda subject to random Wikipedia tangents."
+              {t('planFoot', 'logistics')}
             </div>
           </div>
 
@@ -120,19 +122,19 @@ export const RendezvousCoordinates: React.FC = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-arcade px-2.5 py-1 rounded bg-[#22C55E] text-neutral-950 font-bold">
-                  💸 PAYMENT POLICY
+                  {t('payBadge', 'logistics')}
                 </span>
                 <Wallet className="w-4 h-4 text-[#22C55E]" />
               </div>
               <h3 className="text-lg font-cinzel font-bold text-[#FFF7E6]">
-                Everyone pays for themselves.
+                {t('payTitle', 'logistics')}
               </h3>
               <p className="text-xs sm:text-sm text-zinc-300 font-sans leading-relaxed">
-                "Daddy has many talents. Funding 15 adults' bar tabs is not one of them. Split checks build character."
+                {t('payDesc', 'logistics')}
               </p>
             </div>
             <div className="p-2.5 rounded-lg bg-[#172554] border border-[#22C55E]/30 text-center text-xs font-space text-emerald-300">
-              💵 Card & Blik accepted at venue
+              {t('payFoot', 'logistics')}
             </div>
           </div>
         </div>

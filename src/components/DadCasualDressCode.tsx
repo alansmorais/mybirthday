@@ -1,32 +1,35 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Shirt, Footprints, Sparkles, AlertCircle } from 'lucide-react';
+import { Shirt, AlertCircle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export const DadCasualDressCode: React.FC = () => {
+  const { t } = useLanguage();
+
   const codeItems = [
     {
       emoji: "👕",
-      title: "SHIRT",
-      label: "Nice enough",
-      desc: "Cardigan, polo, or vintage t-shirt. Avoid high-fashion nonsense."
+      title: t('item1Title', 'dress'),
+      label: t('item1Label', 'dress'),
+      desc: t('item1Desc', 'dress')
     },
     {
       emoji: "👖",
-      title: "PANTS",
-      label: "Comfortable enough",
-      desc: "Cargo pockets encouraged for holding snacks, keys, and measuring tape."
+      title: t('item2Title', 'dress'),
+      label: t('item2Label', 'dress'),
+      desc: t('item2Desc', 'dress')
     },
     {
       emoji: "👟",
-      title: "FOOTWEAR",
-      label: "Walking-home capable",
-      desc: "New Balance sneakers or sensible footwear with arch support."
+      title: t('item3Title', 'dress'),
+      label: t('item3Label', 'dress'),
+      desc: t('item3Desc', 'dress')
     },
     {
       emoji: "🕺",
-      title: "VIBES",
-      label: "Dance moves: optional",
-      desc: "Thumbs in pockets, rhythmic foot tapping, and awkward finger guns."
+      title: t('item4Title', 'dress'),
+      label: t('item4Label', 'dress'),
+      desc: t('item4Desc', 'dress')
     }
   ];
 
@@ -36,13 +39,13 @@ export const DadCasualDressCode: React.FC = () => {
       <div className="text-center mb-6 space-y-1">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#38BDF8]/20 border border-[#38BDF8] text-[#38BDF8] text-xs font-arcade uppercase tracking-wider mb-2">
           <Shirt className="w-3.5 h-3.5" />
-          <span>WARDROBE PROTOCOL</span>
+          <span>{t('badge', 'dress')}</span>
         </div>
         <h3 className="text-2xl sm:text-3xl font-cinzel font-black text-[#FFF7E6]">
-          DAD CASUAL™
+          {t('title', 'dress')}
         </h3>
         <p className="text-sm font-playfair italic text-sky-200">
-          "Look respectable. Act questionable."
+          {t('subtext', 'dress')}
         </p>
       </div>
 
@@ -70,7 +73,7 @@ export const DadCasualDressCode: React.FC = () => {
       {/* Warning Sticker */}
       <div className="mt-5 p-3 rounded-xl bg-[#F43F5E]/15 border border-[#F43F5E]/40 text-center text-xs font-space text-rose-200 flex items-center justify-center gap-2">
         <AlertCircle className="w-4 h-4 text-[#F43F5E] shrink-0" />
-        <span>NOTICE: Tracksuits and flannel are acceptable. Speedos are strictly forbidden.</span>
+        <span>{t('warn', 'dress')}</span>
       </div>
     </div>
   );

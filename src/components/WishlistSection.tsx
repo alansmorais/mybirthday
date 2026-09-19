@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import confetti from 'canvas-confetti';
 import {
-  Lock,
   BookOpen,
   Music,
   ShieldAlert,
@@ -12,17 +11,18 @@ import {
   BookMarked,
   Gift,
   Check,
-  Loader2,
-  Package
+  Loader2
 } from 'lucide-react';
 import { WishlistItem } from '../types';
 import { INITIAL_WISHLIST } from '../data/initialWishlist';
+import { useLanguage } from '../context/LanguageContext';
 
 interface WishlistSectionProps {
   onReservationChanged?: () => void;
 }
 
 export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationChanged }) => {
+  const { t } = useLanguage();
   const [items, setItems] = useState<WishlistItem[]>(INITIAL_WISHLIST);
   const [reservingId, setReservingId] = useState<string | null>(null);
   const [myReservations, setMyReservations] = useState<Record<string, boolean>>({});
@@ -129,17 +129,17 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#FF8A3D] text-[#FF8A3D] text-xs font-arcade uppercase tracking-wider sticker-badge">
             <Gift className="w-3.5 h-3.5" />
-            <span>OPTIONAL TRIBUTE</span>
+            <span>{t('badge', 'wishlist')}</span>
           </div>
           <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold flex items-center justify-center gap-3">
             <span>🎁</span>
-            <span>DADDY'S WISHLIST</span>
+            <span>{t('title', 'wishlist')}</span>
           </h2>
           <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic max-w-md mx-auto">
-            "If you insist... Your presence is the actual gift, but if you insist on ignoring that rule, here is what Daddy likes."
+            {t('subtext', 'wishlist')}
           </p>
-          <div className="text-[11px] font-space text-sky-300 font-semibold">
-            🔒 100% Anonymous Reservations • Zero-Knowledge Claiming
+          <div className="text-[11px] font-space text-sky-300 font-semibold font-arcade tracking-wider">
+            {t('anon', 'wishlist')}
           </div>
         </div>
 
@@ -148,6 +148,17 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
           {items.map((item, index) => {
             const isReservedByMe = myReservations[item.id];
             const isCurrentlyReserved = item.isReserved;
+
+            // Dynamically translate wishlist item properties from language pack
+            const keyPrefix = item.id.replace('item-', 'item');
+            const translatedTitle = t(`${keyPrefix}Title`, 'wishlist');
+            const displayTitle = (translatedTitle && translatedTitle !== `${keyPrefix}Title`) ? translatedTitle : item.title;
+            const translatedSub = t(`${keyPrefix}Sub`, 'wishlist');
+            const displaySubtitle = (translatedSub && translatedSub !== `${keyPrefix}Sub`) ? translatedSub : item.subtitle;
+            const translatedDesc = t(`${keyPrefix}Desc`, 'wishlist');
+            const displayDesc = (translatedDesc && translatedDesc !== `${keyPrefix}Desc`) ? translatedDesc : item.description;
+            const translatedPrice = t(`${keyPrefix}Price`, 'wishlist');
+            const displayPrice = (translatedPrice && translatedPrice !== `${keyPrefix}Price`) ? translatedPrice : item.price;
 
             return (
               <motion.div
@@ -170,22 +181,22 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-cinzel font-bold text-sm sm:text-base text-[#FFF7E6]">
-                        {item.title}
+                        {displayTitle}
                       </h4>
                       <div className="text-xs font-space font-bold text-[#F5B942] mt-0.5">
-                        {item.price}
+                        {displayPrice}
                       </div>
                     </div>
                   </div>
 
-                  {item.subtitle && (
+                  {displaySubtitle && (
                     <p className="text-xs sm:text-sm text-amber-200/90 font-sans italic">
-                      "{item.subtitle}"
+                      "{displaySubtitle}"
                     </p>
                   )}
-                  {item.description && (
+                  {displayDesc && (
                     <p className="text-[11px] text-zinc-400 font-sans">
-                      {item.description}
+                      {displayDesc}
                     </p>
                   )}
                 </div>
@@ -194,11 +205,11 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
                 <div className="pt-3 border-t border-[#1e2e54] flex items-center justify-between">
                   <span className="text-[11px] font-arcade font-bold">
                     {isCurrentlyReserved ? (
-                      <span className="text-zinc-500">CLAIMED</span>
+                      <span className="text-zinc-500">{t('claimed', 'wishlist')}</span>
                     ) : (
                       <span className="text-[#22C55E] flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-pulse"></span>
-                        AVAILABLE
+                        {t('available', 'wishlist')}
                       </span>
                     )}
                   </span>
@@ -217,17 +228,17 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
                     {reservingId === item.id ? (
                       <span className="flex items-center gap-1">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>UPDATING...</span>
+                        <span>{t('updating', 'wishlist')}</span>
                       </span>
                     ) : isReservedByMe ? (
                       <span className="flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5 text-[#F5B942]" />
-                        <span>YOUR CLAIM</span>
+                        <span>{t('yourClaim', 'wishlist')}</span>
                       </span>
                     ) : isCurrentlyReserved ? (
-                      <span>ALREADY CLAIMED</span>
+                      <span>{t('alreadyClaimed', 'wishlist')}</span>
                     ) : (
-                      <span>RESERVE GIFT</span>
+                      <span>{t('reserveBtn', 'wishlist')}</span>
                     )}
                   </button>
                 </div>

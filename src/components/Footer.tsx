@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Lock, Sparkles, Beer, Laugh, Star, Heart } from 'lucide-react';
+import { Lock, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FooterProps {
   onOpenAdmin: () => void;
@@ -8,19 +9,21 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenComic }) => {
+  const { t } = useLanguage();
+
   return (
     <footer className="pt-16 pb-12 px-4 text-center border-t-2 border-[#1e2e54] bg-[#090e1a] relative overflow-hidden bg-retro-grid">
       <div className="max-w-xl mx-auto space-y-6 relative z-10">
         {/* Grand See You Friday */}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#172554] border border-[#F5B942] text-[#F5B942] text-xs font-arcade uppercase">
-            ★ FINAL REMINDER ★
+            {t('reminder', 'footer')}
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-cinzel font-black tracking-wider text-retro-gold drop-shadow-md">
-            SEE YOU FRIDAY.
+            {t('seeYou', 'footer')}
           </h2>
           <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic">
-            "I'm not sleeping at the pub, I'm just inspecting the insides of my eyelids."
+            {t('quote', 'footer')}
           </p>
         </div>
 
@@ -34,10 +37,10 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenComic }) => {
         {/* Humorous Tagline */}
         <div className="space-y-1 text-xs text-sky-200 font-space">
           <div className="font-extrabold text-[#F5B942] tracking-wider">
-            ALAN'S 30+ DAD JOKE EXPERIENCE™ • KRAKÓW 2026
+            {t('tagline', 'footer')}
           </div>
           <p className="text-zinc-400">
-            No thermostat tampering • Responsibilities permanently suspended • Pint glasses full
+            {t('subTagline', 'footer')}
           </p>
         </div>
 
@@ -48,7 +51,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenComic }) => {
             className="hover:text-[#F5B942] transition-colors flex items-center gap-1.5 cursor-pointer font-bold"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#F5B942]" />
-            <span>Comic Alan</span>
+            <span>{t('comicLink', 'footer')}</span>
           </button>
           <span className="text-zinc-600">•</span>
           <button
@@ -56,7 +59,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin, onOpenComic }) => {
             className="hover:text-[#F5B942] transition-colors flex items-center gap-1.5 cursor-pointer font-bold"
           >
             <Lock className="w-3.5 h-3.5 text-[#F5B942]" />
-            <span>Dad's Guest Vault</span>
+            <span>{t('vaultLink', 'footer')}</span>
           </button>
         </div>
       </div>

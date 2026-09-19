@@ -22,6 +22,14 @@ export interface WishlistItem {
   reservedAt?: string;
 }
 
+export interface ConfirmedAttendee {
+  id?: string;
+  name: string;
+  guestCount: number;
+  message?: string;
+  createdAt: string;
+}
+
 export interface AdminStats {
   totalRsvps: number;
   totalHeadcount: number;
