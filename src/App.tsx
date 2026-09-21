@@ -66,8 +66,8 @@ export default function App() {
         onOpenWishlist={handleOpenWishlist}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col justify-center">
+      {/* Main Content Area with top padding to clear fixed header */}
+      <main className="flex-1 flex flex-col justify-center pt-20 sm:pt-24 pb-8">
         {activeTab === 'invitation' ? (
           <>
             {/* Compact, non-long invitation screen for guests */}

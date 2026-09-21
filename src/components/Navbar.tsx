@@ -79,43 +79,51 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
         scrolled
-          ? 'bg-[#0d1527]/95 backdrop-blur-md border-b-2 border-[#1e2e54] py-2.5 shadow-2xl'
-          : 'bg-transparent py-3.5 border-b border-white/10'
+          ? 'bg-[#0a0f1d]/95 backdrop-blur-md border-b-2 border-[#1e2e54] py-2 shadow-2xl'
+          : 'bg-[#0a0f1d]/90 backdrop-blur-md border-b border-white/10 py-2.5'
       }`}
     >
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-        {/* Left: Avatar + Title */}
-        <div className="flex items-center gap-3">
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 flex items-center justify-between">
+        {/* Left: Avatar + Host Name */}
+        <div className="flex items-center gap-2.5">
           <button
             onClick={onOpenComic}
             title={t('comicPortrait', 'nav')}
-            className="group relative flex items-center justify-center rounded-full p-[2px] bg-gradient-to-tr from-[#F5B942] via-[#FF8A3D] to-[#38BDF8] hover:scale-105 transition-transform duration-200 cursor-pointer"
+            className="group relative flex items-center justify-center rounded-full p-[2px] bg-gradient-to-tr from-[#F5B942] via-[#FF8A3D] to-[#38BDF8] hover:scale-105 transition-transform duration-200 cursor-pointer shrink-0"
             id="nav-avatar-btn"
           >
             <img
               src={AVATAR_URL}
               alt="Alan Morais"
               referrerPolicy="no-referrer"
-              className="w-9 h-9 rounded-full object-cover border-2 border-[#0d1527]"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-[#0d1527]"
             />
-            <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[#22C55E] ring-2 ring-[#0d1527]">
+            <span className="absolute -bottom-1 -right-1 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full bg-[#22C55E] ring-2 ring-[#0d1527]">
               <span className="h-1.5 w-1.5 rounded-full bg-white animate-ping"></span>
             </span>
           </button>
 
-          <div className="cursor-pointer" onClick={() => scrollToSection('hero')}>
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase tracking-wider font-extrabold text-[#F5B942] font-cinzel">
-                Alan's 30+ Birthday
+          <div
+            className="cursor-pointer"
+            onClick={() => {
+              if (activeTab === 'admin') {
+                setActiveTab('invitation');
+              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs sm:text-sm uppercase tracking-wider font-extrabold text-[#F5B942] font-cinzel whitespace-nowrap">
+                Alan Morais
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#F5B942] text-neutral-950 font-arcade font-black hidden sm:inline-block">
-                {t('level', 'nav')}
+              <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-[#F5B942] text-neutral-950 font-arcade font-black">
+                30+
               </span>
             </div>
-            <p className="text-[11px] text-sky-200 font-space font-medium">
-              {t('subtitle', 'nav')}
+            <p className="text-[10px] sm:text-[11px] text-sky-200/90 font-space font-medium whitespace-nowrap">
+              {lang === 'PT' ? 'Sex, 25 Set • Cracóvia' : lang === 'PL' ? 'Pt, 25 Wrz • Kraków' : 'Fri, Sep 25 • Kraków'}
             </p>
           </div>
         </div>
