@@ -174,7 +174,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
 
       if (!dataLoaded) {
-        const localRsvps: RsvpSubmission[] = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
+        const raw = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
+        const fakeIds = new Set(['rsvp-1', 'rsvp-2', 'rsvp-3', 'rsvp-4']);
+        const localRsvps: RsvpSubmission[] = raw.filter((r: any) => !fakeIds.has(r?.id) && r?.name !== 'Kasia & Mateusz' && r?.name !== 'Viktor K.' && r?.name !== 'Tomek (The Architect)' && r?.name !== 'Anna & Friends');
+        if (localRsvps.length !== raw.length) {
+          localStorage.setItem('alans_rsvps', JSON.stringify(localRsvps));
+        }
         const myRes: Record<string, boolean> = JSON.parse(localStorage.getItem('alans_my_reservations') || '{}');
         const localWishlist = INITIAL_WISHLIST.map(item => ({
           ...item,
@@ -840,7 +845,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   required
                   value={manualName}
                   onChange={(e) => setManualName(e.target.value)}
-                  placeholder="e.g. Kasia Kowalska"
+                  placeholder="Guest name or nickname"
                   className="w-full px-3 py-2 rounded-lg bg-[#161822] border border-[#272c3d] text-sm text-zinc-100 focus:outline-none focus:border-amber-400"
                 />
               </div>

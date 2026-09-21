@@ -125,44 +125,8 @@ const DEFAULT_WISHLIST: WishlistRecord[] = [
   }
 ];
 
-const DEFAULT_RSVPS: RsvpRecord[] = [
-  {
-    id: 'rsvp-1',
-    status: 'YES',
-    name: 'Kasia & Mateusz',
-    guestCount: 2,
-    message: 'Bringing the best craft IPA from Warsaw. Happy 30+!',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString(),
-    checkedIn: true
-  },
-  {
-    id: 'rsvp-2',
-    status: 'YES',
-    name: 'Viktor K.',
-    guestCount: 1,
-    message: 'Will definitely look like I have my life together.',
-    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
-    checkedIn: false
-  },
-  {
-    id: 'rsvp-3',
-    status: 'MAYBE',
-    name: 'Anna & Friends',
-    guestCount: 2,
-    message: 'Negotiating the train schedule from Wrocław. High probability!',
-    createdAt: new Date(Date.now() - 3600000 * 18).toISOString(),
-    checkedIn: false
-  },
-  {
-    id: 'rsvp-4',
-    status: 'YES',
-    name: 'Tomek (The Architect)',
-    guestCount: 1,
-    message: 'Third beer milestone is where the real philosophy begins.',
-    createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-    checkedIn: false
-  }
-];
+// Initial RSVPs: strictly start empty - only real guests who RSVP are displayed
+const DEFAULT_RSVPS: RsvpRecord[] = [];
 
 // Helper to ensure database file exists
 function getDb(): DatabaseSchema {

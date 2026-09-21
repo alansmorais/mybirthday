@@ -7,14 +7,16 @@ interface HeroSectionProps {
   onScrollToRsvp: () => void;
   onScrollToWishlist: () => void;
   onOpenComic: () => void;
+  onOpenExtras?: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onScrollToRsvp,
   onScrollToWishlist,
-  onOpenComic
+  onOpenComic,
+  onOpenExtras
 }) => {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const AVATAR_URL = 'https://avatars.githubusercontent.com/u/78435965?s=400&u=085533adc24d2ec6471affc4d4bc6ea051882a28&v=4';
 
   return (
@@ -164,6 +166,18 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <span>🎁</span>
             <span>{t('wishlistBtn', 'hero')}</span>
           </button>
+
+          {/* Optional Extras / Jokes Menu */}
+          {onOpenExtras && (
+            <button
+              onClick={onOpenExtras}
+              id="hero-extras-btn"
+              className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-zinc-900/80 hover:bg-zinc-800 text-amber-300 font-arcade text-xs sm:text-sm uppercase tracking-wider font-bold border border-amber-400/40 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>😂</span>
+              <span>{lang === 'PT' ? 'Menu de Piadas & Extras' : lang === 'PL' ? 'Menu: Suchary & Extras' : 'Dad Jokes & Extras Menu'}</span>
+            </button>
+          )}
         </motion.div>
       </div>
     </section>

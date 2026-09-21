@@ -19,9 +19,10 @@ import { useLanguage } from '../context/LanguageContext';
 
 interface WishlistSectionProps {
   onReservationChanged?: () => void;
+  isModal?: boolean;
 }
 
-export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationChanged }) => {
+export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationChanged, isModal = false }) => {
   const { t } = useLanguage();
   const [items, setItems] = useState<WishlistItem[]>(INITIAL_WISHLIST);
   const [reservingId, setReservingId] = useState<string | null>(null);
@@ -123,25 +124,27 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
   };
 
   return (
-    <section id="wishlist" className="py-12 px-4 relative bg-retro-dots">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Section Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#FF8A3D] text-[#FF8A3D] text-xs font-arcade uppercase tracking-wider sticker-badge">
-            <Gift className="w-3.5 h-3.5" />
-            <span>{t('badge', 'wishlist')}</span>
+    <div id="wishlist" className={isModal ? 'w-full space-y-4' : 'py-12 px-4 relative bg-retro-dots'}>
+      <div className={isModal ? 'w-full space-y-4' : 'max-w-4xl mx-auto space-y-8'}>
+        {/* Section Header (hidden in modal) */}
+        {!isModal && (
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#FF8A3D] text-[#FF8A3D] text-xs font-arcade uppercase tracking-wider sticker-badge">
+              <Gift className="w-3.5 h-3.5" />
+              <span>{t('badge', 'wishlist')}</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold flex items-center justify-center gap-3">
+              <span>🎁</span>
+              <span>{t('title', 'wishlist')}</span>
+            </h2>
+            <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic max-w-md mx-auto">
+              {t('subtext', 'wishlist')}
+            </p>
+            <div className="text-[11px] font-space text-sky-300 font-semibold font-arcade tracking-wider">
+              {t('anon', 'wishlist')}
+            </div>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold flex items-center justify-center gap-3">
-            <span>🎁</span>
-            <span>{t('title', 'wishlist')}</span>
-          </h2>
-          <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic max-w-md mx-auto">
-            {t('subtext', 'wishlist')}
-          </p>
-          <div className="text-[11px] font-space text-sky-300 font-semibold font-arcade tracking-wider">
-            {t('anon', 'wishlist')}
-          </div>
-        </div>
+        )}
 
         {/* Wishlist Items Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -247,6 +250,6 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
           })}
         </div>
       </div>
-    </section>
+    </div>
   );
 };

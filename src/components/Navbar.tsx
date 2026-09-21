@@ -8,6 +8,9 @@ interface NavbarProps {
   activeTab: 'invitation' | 'admin';
   setActiveTab: (tab: 'invitation' | 'admin') => void;
   onOpenComic: () => void;
+  onOpenExtras?: (tab?: any) => void;
+  onOpenRsvp?: (initialView?: 'form' | 'roster') => void;
+  onOpenWishlist?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -15,7 +18,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   isAdminLoggedIn,
   activeTab,
   setActiveTab,
-  onOpenComic
+  onOpenComic,
+  onOpenExtras,
+  onOpenRsvp,
+  onOpenWishlist
 }) => {
   const { lang, setLang, t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
@@ -117,29 +123,41 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Center: Navigation Links (Desktop) */}
         <nav className="hidden md:flex items-center gap-5 text-xs font-space font-bold text-zinc-300">
           <button
-            onClick={() => scrollToSection('briefing')}
-            className="hover:text-[#F5B942] transition-colors py-1 cursor-pointer"
-          >
-            {t('rules', 'nav')}
-          </button>
-          <button
-            onClick={() => scrollToSection('coordinates')}
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             className="hover:text-[#F5B942] transition-colors py-1 cursor-pointer"
           >
             {t('whenWhere', 'nav')}
           </button>
           <button
-            onClick={() => scrollToSection('rsvp')}
+            onClick={() => {
+              if (onOpenRsvp) onOpenRsvp('form');
+              else scrollToSection('rsvp');
+            }}
             className="text-[#F5B942] hover:text-[#ffc85a] transition-colors font-extrabold py-1 flex items-center gap-1.5 cursor-pointer"
           >
             <span>{t('rsvp', 'nav')}</span>
             <span className="w-2 h-2 rounded-full bg-[#22C55E] animate-pulse"></span>
           </button>
           <button
-            onClick={() => scrollToSection('wishlist')}
+            onClick={() => {
+              if (onOpenWishlist) onOpenWishlist();
+              else scrollToSection('wishlist');
+            }}
             className="hover:text-[#F5B942] transition-colors py-1 cursor-pointer"
           >
             {t('wishlist', 'nav')}
+          </button>
+          <button
+            onClick={() => {
+              if (onOpenExtras) onOpenExtras();
+              else scrollToSection('briefing');
+            }}
+            className="px-3 py-1 rounded-xl bg-[#172554] hover:bg-[#1e2e54] text-[#F5B942] border border-[#F5B942]/40 transition-all cursor-pointer font-extrabold flex items-center gap-1.5 hover:scale-105"
+          >
+            <span>😂</span>
+            <span>{t('rules', 'nav')}</span>
           </button>
         </nav>
 
@@ -148,9 +166,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           {publicStats && publicStats.totalHeadcount > 0 && (
             <button
               onClick={() => {
-                scrollToSection('confirmed-squad');
-                const tab = document.getElementById('tab-confirmed-squad');
-                if (tab) tab.click();
+                if (onOpenRsvp) onOpenRsvp('roster');
+                else {
+                  scrollToSection('confirmed-squad');
+                  const tab = document.getElementById('tab-confirmed-squad');
+                  if (tab) tab.click();
+                }
               }}
               className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#172554] hover:bg-[#1e2e54] border border-[#38BDF8]/40 hover:border-[#22C55E] text-[11px] text-[#FFF7E6] font-space font-bold cursor-pointer transition-all shadow-sm"
               title="Click to view confirmed roll call"
@@ -161,13 +182,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* Language Selector */}
+          {/* Tri-Language Selector */}
           <button
-            onClick={() => setLang(lang === 'PL' ? 'EN' : 'PL')}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-[#172554] hover:bg-[#1e2e54] text-[#38BDF8] border border-[#38BDF8]/40 transition-all cursor-pointer font-space"
-            title="Switch Language / Zmień Język"
+            onClick={() => {
+              if (lang === 'PL') setLang('EN');
+              else if (lang === 'EN') setLang('PT');
+              else setLang('PL');
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-[#172554] hover:bg-[#1e2e54] text-[#38BDF8] border border-[#38BDF8]/40 transition-all cursor-pointer font-space"
+            title="Switch Language (PL / EN / PT)"
           >
-            <Globe className="w-3.5 h-3.5" />
+            <span>{lang === 'PL' ? '🇵🇱' : lang === 'EN' ? '🇬🇧' : '🇧🇷'}</span>
             <span>{lang}</span>
           </button>
 
@@ -203,32 +228,38 @@ export const Navbar: React.FC<NavbarProps> = ({
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0d1527] border-b-2 border-[#1e2e54] px-4 py-3 space-y-2 text-xs font-space font-bold">
           <button
-            onClick={() => scrollToSection('briefing')}
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setMobileMenuOpen(false);
+            }}
             className="w-full text-left py-2 px-3 rounded-lg text-zinc-200 hover:bg-[#172554] hover:text-[#F5B942]"
           >
-            {t('rules', 'nav')} 😂
-          </button>
-          <button
-            onClick={() => scrollToSection('coordinates')}
-            className="w-full text-left py-2 px-3 rounded-lg text-zinc-200 hover:bg-[#172554] hover:text-[#F5B942]"
-          >
-            {t('whenWhere', 'nav')} 📍
-          </button>
-          <button
-            onClick={() => scrollToSection('rsvp')}
-            className="w-full text-left py-2 px-3 rounded-lg font-bold text-neutral-950 bg-[#F5B942] font-arcade"
-          >
-            {t('rsvp', 'nav')} 🚀
+            {t('whenWhere', 'nav')}
           </button>
           <button
             onClick={() => {
-              scrollToSection('confirmed-squad');
-              const tab = document.getElementById('tab-confirmed-squad');
-              if (tab) tab.click();
+              if (onOpenRsvp) onOpenRsvp('form');
+              else scrollToSection('rsvp');
+              setMobileMenuOpen(false);
+            }}
+            className="w-full text-left py-2 px-3 rounded-lg font-bold text-neutral-950 bg-[#F5B942] font-arcade flex items-center justify-between"
+          >
+            <span>{t('rsvp', 'nav')}</span>
+            <span>🚀</span>
+          </button>
+          <button
+            onClick={() => {
+              if (onOpenRsvp) onOpenRsvp('roster');
+              else {
+                scrollToSection('confirmed-squad');
+                const tab = document.getElementById('tab-confirmed-squad');
+                if (tab) tab.click();
+              }
+              setMobileMenuOpen(false);
             }}
             className="w-full text-left py-2 px-3 rounded-lg font-bold text-[#22C55E] bg-[#172554] border border-[#22C55E]/40 font-arcade flex items-center justify-between"
           >
-            <span>👥 {lang === 'PL' ? 'KTO POTWIERDZIŁ' : "WHO'S CONFIRMED"}</span>
+            <span>👥 {lang === 'PT' ? 'QUEM CONFIRMOU' : lang === 'PL' ? 'KTO POTWIERDZIŁ' : "WHO'S CONFIRMED"}</span>
             {publicStats && publicStats.totalHeadcount > 0 && (
               <span className="px-2 py-0.5 rounded-full bg-[#22C55E] text-neutral-950 text-[10px] font-mono font-black">
                 {publicStats.totalHeadcount}
@@ -236,10 +267,26 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
           <button
-            onClick={() => scrollToSection('wishlist')}
-            className="w-full text-left py-2 px-3 rounded-lg text-zinc-200 hover:bg-[#172554] hover:text-[#F5B942]"
+            onClick={() => {
+              if (onOpenWishlist) onOpenWishlist();
+              else scrollToSection('wishlist');
+              setMobileMenuOpen(false);
+            }}
+            className="w-full text-left py-2 px-3 rounded-lg text-[#38BDF8] bg-[#172554] border border-[#38BDF8]/40 hover:bg-[#1e2e54] flex items-center justify-between"
           >
-            {t('wishlist', 'nav')}
+            <span>{t('wishlist', 'nav')}</span>
+            <span>🎁</span>
+          </button>
+          <button
+            onClick={() => {
+              if (onOpenExtras) onOpenExtras();
+              else scrollToSection('briefing');
+              setMobileMenuOpen(false);
+            }}
+            className="w-full text-left py-2 px-3 rounded-lg text-[#F5B942] bg-[#172554] border border-[#F5B942]/40 font-bold flex items-center gap-1.5"
+          >
+            <span>😂</span>
+            <span>{t('rules', 'nav')}</span>
           </button>
           <button
             onClick={() => {

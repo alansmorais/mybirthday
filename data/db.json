@@ -1,42 +1,5 @@
 {
-  "rsvps": [
-    {
-      "id": "rsvp-1",
-      "status": "YES",
-      "name": "Kasia & Mateusz",
-      "guestCount": 2,
-      "message": "Bringing the best craft IPA from Warsaw. Happy 30+!",
-      "createdAt": "2026-09-05T16:15:34.376Z",
-      "checkedIn": true
-    },
-    {
-      "id": "rsvp-2",
-      "status": "YES",
-      "name": "Viktor K.",
-      "guestCount": 1,
-      "message": "Will definitely look like I have my life together.",
-      "createdAt": "2026-09-06T16:15:34.376Z",
-      "checkedIn": false
-    },
-    {
-      "id": "rsvp-3",
-      "status": "MAYBE",
-      "name": "Anna & Friends",
-      "guestCount": 2,
-      "message": "Negotiating the train schedule from Wrocław. High probability!",
-      "createdAt": "2026-09-07T22:15:34.376Z",
-      "checkedIn": false
-    },
-    {
-      "id": "rsvp-4",
-      "status": "YES",
-      "name": "Tomek (The Architect)",
-      "guestCount": 1,
-      "message": "Third beer milestone is where the real philosophy begins.",
-      "createdAt": "2026-09-08T08:15:34.376Z",
-      "checkedIn": false
-    }
-  ],
+  "rsvps": [],
   "wishlist": [
     {
       "id": "item-1",

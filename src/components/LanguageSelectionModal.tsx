@@ -48,33 +48,37 @@ export const LanguageSelectionModal: React.FC = () => {
             </p>
 
             {/* Funny subtitle */}
-            <div className="p-4 rounded-xl bg-[#111c35] border border-white/5 mb-8 text-zinc-300 space-y-3 font-sans text-xs sm:text-sm max-w-md mx-auto text-left leading-relaxed">
+            <div className="p-4 rounded-xl bg-[#111c35] border border-white/5 mb-6 text-zinc-300 space-y-2 font-sans text-xs sm:text-sm max-w-lg mx-auto text-left leading-relaxed">
               <p className="italic">
-                🇬🇧 <strong>EN:</strong> To fully enjoy the self-deprecation, lawnmower specs, and lower-back complaints, choose your language protocol.
+                🇵🇱 <strong>PL:</strong> Oficjalne zaproszenie, suchary i koordynaty w Krakowie.
               </p>
               <hr className="border-white/5" />
               <p className="italic">
-                🇵🇱 <strong>PL:</strong> Aby w pełni docenić stękanie przy wstawaniu, suchary o kosiarkach i polski humor narodowy, wybierz wersję ojczystą.
+                🇬🇧 <strong>EN:</strong> Original dad jokes, party logistics, and Krakow coordinates.
+              </p>
+              <hr className="border-white/5" />
+              <p className="italic">
+                🇧🇷 <strong>PT:</strong> Piadas de tiozão, confirmação de presença e lista de presentes.
               </p>
             </div>
 
             {/* Selection Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto relative">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-xl mx-auto relative">
               {/* Polish Language */}
               <button
                 onClick={() => handleSelect('PL')}
-                className="group p-5 rounded-2xl bg-[#172554] hover:bg-[#20326e] border-2 border-[#F5B942] text-left transition-all hover:scale-102 cursor-pointer flex flex-col justify-between h-36 relative"
+                className="group p-4 rounded-2xl bg-[#172554] hover:bg-[#20326e] border-2 border-[#F5B942] text-left transition-all hover:scale-102 cursor-pointer flex flex-col justify-between h-32 relative"
               >
                 <div className="flex justify-between items-start w-full">
-                  <span className="text-3xl">🇵🇱</span>
-                  <span className="text-[10px] font-arcade px-2 py-0.5 rounded bg-[#F5B942] text-neutral-950 font-bold group-hover:animate-bounce">
-                    START
+                  <span className="text-2xl">🇵🇱</span>
+                  <span className="text-[9px] font-arcade px-2 py-0.5 rounded bg-[#F5B942] text-neutral-950 font-bold group-hover:animate-bounce">
+                    PL
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-cinzel font-bold text-lg text-white">POLSKI</h3>
+                  <h3 className="font-cinzel font-bold text-base text-white">POLSKI</h3>
                   <p className="text-[10px] text-amber-200/80 font-sans mt-0.5">
-                    "Suchary po polsku i tryb prawdziwego polskiego taty."
+                    "Suchary i polski humor."
                   </p>
                 </div>
               </button>
@@ -82,18 +86,37 @@ export const LanguageSelectionModal: React.FC = () => {
               {/* English Language */}
               <button
                 onClick={() => handleSelect('EN')}
-                className="group p-5 rounded-2xl bg-[#172554] hover:bg-[#20326e] border-2 border-[#38BDF8] text-left transition-all hover:scale-102 cursor-pointer flex flex-col justify-between h-36 relative"
+                className="group p-4 rounded-2xl bg-[#172554] hover:bg-[#20326e] border-2 border-[#38BDF8] text-left transition-all hover:scale-102 cursor-pointer flex flex-col justify-between h-32 relative"
               >
                 <div className="flex justify-between items-start w-full">
-                  <span className="text-3xl">🇬🇧</span>
-                  <span className="text-[10px] font-arcade px-2 py-0.5 rounded bg-[#38BDF8] text-neutral-950 font-bold group-hover:animate-bounce">
-                    SELECT
+                  <span className="text-2xl">🇬🇧</span>
+                  <span className="text-[9px] font-arcade px-2 py-0.5 rounded bg-[#38BDF8] text-neutral-950 font-bold group-hover:animate-bounce">
+                    EN
                   </span>
                 </div>
                 <div>
-                  <h3 className="font-cinzel font-bold text-lg text-white">ENGLISH</h3>
+                  <h3 className="font-cinzel font-bold text-base text-white">ENGLISH</h3>
                   <p className="text-[10px] text-sky-200/80 font-sans mt-0.5">
-                    "Original dad jokes, charts, and global specifications."
+                    "Classic dad jokes & info."
+                  </p>
+                </div>
+              </button>
+
+              {/* Portuguese Language */}
+              <button
+                onClick={() => handleSelect('PT')}
+                className="group p-4 rounded-2xl bg-[#172554] hover:bg-[#20326e] border-2 border-[#22C55E] text-left transition-all hover:scale-102 cursor-pointer flex flex-col justify-between h-32 relative"
+              >
+                <div className="flex justify-between items-start w-full">
+                  <span className="text-2xl">🇧🇷</span>
+                  <span className="text-[9px] font-arcade px-2 py-0.5 rounded bg-[#22C55E] text-neutral-950 font-bold group-hover:animate-bounce">
+                    PT
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-cinzel font-bold text-base text-white">PORTUGUÊS</h3>
+                  <p className="text-[10px] text-emerald-200/80 font-sans mt-0.5">
+                    "Piadas de tiozão e festa."
                   </p>
                 </div>
               </button>

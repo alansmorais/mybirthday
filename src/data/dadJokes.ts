@@ -150,6 +150,49 @@ export const DAD_JOKES_PL: DadJoke[] = [
   }
 ];
 
+export const DAD_JOKES_PT: DadJoke[] = [
+  {
+    setup: "Por que o Alan fez 30 anos?",
+    punchline: "Porque o tempo não perdoa e os joelhos agora aplaudem em pé cada vez que ele levanta do sofá.",
+    reaction: "👴 *estalo nas costas só de pensar*"
+  },
+  {
+    setup: "Qual é o chá favorito do Alan aos 30+?",
+    punchline: "O chá-ve de fenda e um café bem forte.",
+    reaction: "☕ Especialista em consertos duvidosos."
+  },
+  {
+    setup: "Por que os pais levam duas meias quando vão jogar futebol?",
+    punchline: "Caso façam um golaço de meia-lua ou furem uma.",
+    reaction: "🧦 Ciência pura de tiozão."
+  },
+  {
+    setup: "Como você sabe que o Alan entrou nos 30+?",
+    punchline: "Ele tem uma boca de fogão preferida e reclama do ar condicionado em qualquer lugar.",
+    reaction: "🍳 A boca dianteira direita é a melhor."
+  },
+  {
+    setup: "O que o garçom disse quando o Alan entrou no Lindo Bar?",
+    punchline: "Por que essa cara séria? Alan: Não é tristeza, é só a gravidade agindo após os 30.",
+    reaction: "🍺 Desce mais um chopp artesanal!"
+  },
+  {
+    setup: "Minha namorada me pediu para parar de imitar um flamingo.",
+    punchline: "Tive que bater o pé.",
+    reaction: "🦩 Postura inegociável."
+  },
+  {
+    setup: "O que o zero disse para o oito?",
+    punchline: "Belo cinto!",
+    reaction: "0️⃣ Acessório impecável."
+  },
+  {
+    setup: "Por que o livro de matemática se suicidou?",
+    punchline: "Porque tinha muitos problemas.",
+    reaction: "📚 Nível tiozão avançado."
+  }
+];
+
 export const TICKER_JOKES_EN: string[] = [
   "DAD JOKE TICKER: I only know 25 letters of the alphabet. I don't know Y.",
   "MY BACK GOES OUT MORE THAN I DO.",

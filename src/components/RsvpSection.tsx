@@ -8,11 +8,18 @@ import { useLanguage } from '../context/LanguageContext';
 interface RsvpSectionProps {
   onRsvpSubmitted?: (rsvp: RsvpSubmission) => void;
   onOpenAdmin?: () => void;
+  isModal?: boolean;
+  initialView?: 'form' | 'roster';
 }
 
-export const RsvpSection: React.FC<RsvpSectionProps> = ({ onRsvpSubmitted, onOpenAdmin }) => {
+export const RsvpSection: React.FC<RsvpSectionProps> = ({
+  onRsvpSubmitted,
+  onOpenAdmin,
+  isModal = false,
+  initialView = 'form'
+}) => {
   const { t } = useLanguage();
-  const [activeView, setActiveView] = useState<'form' | 'roster'>('form');
+  const [activeView, setActiveView] = useState<'form' | 'roster'>(initialView);
   const [status, setStatus] = useState<RsvpStatus>('YES');
   const [name, setName] = useState('');
   const [guestCount, setGuestCount] = useState<number>(1);
@@ -53,7 +60,12 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({ onRsvpSubmitted, onOpe
     }
 
     try {
-      const local = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
+      const raw = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
+      const fakeIds = new Set(['rsvp-1', 'rsvp-2', 'rsvp-3', 'rsvp-4']);
+      const local = raw.filter((r: any) => !fakeIds.has(r?.id) && r?.name !== 'Kasia & Mateusz' && r?.name !== 'Viktor K.' && r?.name !== 'Tomek (The Architect)' && r?.name !== 'Anna & Friends');
+      if (local.length !== raw.length) {
+        localStorage.setItem('alans_rsvps', JSON.stringify(local));
+      }
       const yes = local.filter((r: any) => r.status === 'YES');
       const maybe = local.filter((r: any) => r.status === 'MAYBE');
       setConfirmedList(yes);
@@ -166,21 +178,23 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({ onRsvpSubmitted, onOpe
   };
 
   return (
-    <section id="rsvp" className="py-12 px-4 relative scroll-mt-20">
-      <div id="confirmed-squad" className="max-w-2xl mx-auto space-y-6 scroll-mt-24">
-        {/* Section Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#22C55E] text-[#22C55E] text-xs font-arcade uppercase tracking-wider sticker-badge">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>{t('badge', 'rsvp')}</span>
+    <div id="rsvp" className={isModal ? 'w-full space-y-5' : 'py-12 px-4 relative scroll-mt-20'}>
+      <div id="confirmed-squad" className={isModal ? 'w-full space-y-5' : 'max-w-2xl mx-auto space-y-6 scroll-mt-24'}>
+        {/* Section Header (hidden in modal) */}
+        {!isModal && (
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#1e293b] border-2 border-[#22C55E] text-[#22C55E] text-xs font-arcade uppercase tracking-wider sticker-badge">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{t('badge', 'rsvp')}</span>
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold">
+              {t('title', 'rsvp')}
+            </h2>
+            <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic">
+              {t('subtext', 'rsvp')}
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-5xl font-cinzel font-black tracking-wide text-retro-gold">
-            {t('title', 'rsvp')}
-          </h2>
-          <p className="text-sm sm:text-base text-amber-200/90 font-playfair italic">
-            {t('subtext', 'rsvp')}
-          </p>
-        </div>
+        )}
 
         {/* View Switcher Tabs: Submit vs Who's Confirmed */}
         <div className="flex items-center justify-center p-1.5 bg-[#0a1122] rounded-2xl border-2 border-[#1e2e54] max-w-md mx-auto shadow-lg">
@@ -647,7 +661,7 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({ onRsvpSubmitted, onOpe
           )}
         </motion.div>
       </div>
-    </section>
+    </div>
   );
 };
 

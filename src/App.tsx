@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
-import { HeroSection } from './components/HeroSection';
-import { DadJokeTicker } from './components/DadJokeTicker';
-import { DadRulesSection } from './components/DadRulesSection';
-import { DadStatsSection } from './components/DadStatsSection';
-import { DadAchievementsSection } from './components/DadAchievementsSection';
-import { AgeComparisonSection } from './components/AgeComparisonSection';
-import { RendezvousCoordinates } from './components/RendezvousCoordinates';
-import { RsvpSection } from './components/RsvpSection';
-import { WishlistSection } from './components/WishlistSection';
+import { CompactInvitationCard } from './components/CompactInvitationCard';
+import { RsvpModal } from './components/RsvpModal';
+import { WishlistModal } from './components/WishlistModal';
 import { ComicPortraitModal } from './components/ComicPortraitModal';
+import { DadExtrasModal } from './components/DadExtrasModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { LanguageSelectionModal } from './components/LanguageSelectionModal';
 import { Footer } from './components/Footer';
@@ -17,7 +12,12 @@ import { RsvpSubmission } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'invitation' | 'admin'>('invitation');
+  const [isRsvpOpen, setIsRsvpOpen] = useState(false);
+  const [rsvpInitialView, setRsvpInitialView] = useState<'form' | 'roster'>('form');
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isComicOpen, setIsComicOpen] = useState(false);
+  const [isExtrasOpen, setIsExtrasOpen] = useState(false);
+  const [extrasInitialTab, setExtrasInitialTab] = useState<'jokes' | 'rules' | 'stats' | 'trophies' | 'comparison' | 'dress'>('jokes');
   const [adminToken, setAdminToken] = useState<string | null>(null);
 
   // Check saved admin session on mount
@@ -30,17 +30,18 @@ export default function App() {
     } catch {}
   }, []);
 
-  const handleScrollToSection = (id: string) => {
-    if (activeTab !== 'invitation') {
-      setActiveTab('invitation');
-      setTimeout(() => {
-        const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    } else {
-      const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const handleOpenRsvp = (initialView: 'form' | 'roster' = 'form') => {
+    setRsvpInitialView(initialView);
+    setIsRsvpOpen(true);
+  };
+
+  const handleOpenWishlist = () => {
+    setIsWishlistOpen(true);
+  };
+
+  const handleOpenExtras = (tab?: 'jokes' | 'rules' | 'stats' | 'trophies' | 'comparison' | 'dress') => {
+    if (tab) setExtrasInitialTab(tab);
+    setIsExtrasOpen(true);
   };
 
   const handleOpenAdmin = () => {
@@ -49,62 +50,31 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1d] text-[#FFF7E6] font-sans selection:bg-[#F5B942]/40 selection:text-[#FFF7E6]">
+    <div className="min-h-screen bg-[#0a0f1d] text-[#FFF7E6] font-sans selection:bg-[#F5B942]/40 selection:text-[#FFF7E6] flex flex-col justify-between">
       {/* Language Selection Modal */}
       <LanguageSelectionModal />
 
-      {/* Retro Navigation Bar */}
+      {/* Navigation Bar */}
       <Navbar
         onOpenAdmin={handleOpenAdmin}
         isAdminLoggedIn={!!adminToken}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenComic={() => setIsComicOpen(true)}
+        onOpenExtras={() => handleOpenExtras('jokes')}
+        onOpenRsvp={handleOpenRsvp}
+        onOpenWishlist={handleOpenWishlist}
       />
 
       {/* Main Content Area */}
-      <main>
+      <main className="flex-1 flex flex-col justify-center">
         {activeTab === 'invitation' ? (
           <>
-            {/* 1. Hero Section (1980s Dad Comedy Poster Style) */}
-            <HeroSection
-              onScrollToRsvp={() => handleScrollToSection('rsvp')}
-              onScrollToWishlist={() => handleScrollToSection('wishlist')}
-              onOpenComic={() => setIsComicOpen(true)}
-            />
-
-            {/* 2. Retro Animated Dad Joke Ticker */}
-            <DadJokeTicker />
-
-            {/* 3. Dad Rules (6 Cards + Interactive Joke Dispenser) */}
-            <DadRulesSection />
-
-            {/* 4. Dad Performance Report™ (Stats & Diagnostic Telemetry) */}
-            <DadStatsSection />
-
-            {/* 5. Dad Achievements Unlocked (Trophies & Badges) */}
-            <DadAchievementsSection />
-
-            {/* 6. Age Section (30+ vs 20s Comparison Matrix) */}
-            <AgeComparisonSection />
-
-            {/* 7. Rendezvous Coordinates (When, Where, Plan, Payment, Dress Code & Legal Disclaimer) */}
-            <RendezvousCoordinates />
-
-            {/* 8. Protocol Confirmation (Roll Call RSVP: Yes / Maybe / No) */}
-            <RsvpSection
-              onRsvpSubmitted={(rsvp) => {
-                console.log('RSVP submitted successfully:', rsvp);
-              }}
-              onOpenAdmin={handleOpenAdmin}
-            />
-
-            {/* 9. Optional Tribute (Daddy's Wishlist with Anonymous Reservations) */}
-            <WishlistSection />
-
-            {/* 10. Footer */}
-            <Footer
-              onOpenAdmin={handleOpenAdmin}
+            {/* Compact, non-long invitation screen for guests */}
+            <CompactInvitationCard
+              onOpenRsvp={handleOpenRsvp}
+              onOpenWishlist={handleOpenWishlist}
+              onOpenExtras={() => handleOpenExtras('jokes')}
               onOpenComic={() => setIsComicOpen(true)}
             />
           </>
@@ -121,7 +91,39 @@ export default function App() {
         )}
       </main>
 
-      {/* Alan Comic Character Portrait Modal */}
+      {/* Footer */}
+      {activeTab === 'invitation' && (
+        <Footer
+          onOpenAdmin={handleOpenAdmin}
+          onOpenComic={() => setIsComicOpen(true)}
+        />
+      )}
+
+      {/* 1. Modal de Confirmação de Presença (RSVP & Lista de Confirmados) */}
+      <RsvpModal
+        isOpen={isRsvpOpen}
+        onClose={() => setIsRsvpOpen(false)}
+        initialView={rsvpInitialView}
+        onRsvpSubmitted={(rsvp) => {
+          console.log('RSVP submitted:', rsvp);
+        }}
+        onOpenAdmin={handleOpenAdmin}
+      />
+
+      {/* 2. Modal da Lista de Presentes a Escolher (Wishlist) */}
+      <WishlistModal
+        isOpen={isWishlistOpen}
+        onClose={() => setIsWishlistOpen(false)}
+      />
+
+      {/* 3. Modal de Piadas, Regras, Estatísticas e Extras */}
+      <DadExtrasModal
+        isOpen={isExtrasOpen}
+        onClose={() => setIsExtrasOpen(false)}
+        defaultTab={extrasInitialTab}
+      />
+
+      {/* 4. Alan Comic Character Portrait Modal */}
       <ComicPortraitModal
         isOpen={isComicOpen}
         onClose={() => setIsComicOpen(false)}
