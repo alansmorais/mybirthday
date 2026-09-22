@@ -21,10 +21,17 @@ import {
   Sparkles,
   Check,
   ShieldCheck,
-  PhoneCall
+  PhoneCall,
+  MessageCircle
 } from 'lucide-react';
 import { RsvpSubmission, WishlistItem, AdminStats } from '../types';
 import { INITIAL_WISHLIST } from '../data/initialWishlist';
+import {
+  getRsvpsFromFirestore,
+  updateRsvpCheckInFirestore,
+  deleteRsvpFromFirestore,
+  saveRsvpToFirestore
+} from '../lib/firebase';
 
 // --- ADMIN PASSWORD CONFIGURATION FOR GITHUB PAGES ---
 // You can edit this fallback password directly in the code for your static site!
@@ -64,6 +71,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Active view tab in admin
   const [adminTab, setAdminTab] = useState<'guests' | 'wishlist'>('guests');
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [whatsappPhone, setWhatsappPhone] = useState(() => {
+    return typeof window !== 'undefined' ? (localStorage.getItem('alans_whatsapp_phone') || '') : '';
+  });
 
   const showNotification = (msg: string) => {
     setActionSuccess(msg);
@@ -174,20 +184,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
 
       if (!dataLoaded) {
+        let firestoreRsvps: RsvpSubmission[] = [];
+        try {
+          firestoreRsvps = await getRsvpsFromFirestore();
+        } catch (fsErr) {
+          console.warn('Firestore admin load error:', fsErr);
+        }
+
         const raw = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
         const fakeIds = new Set(['rsvp-1', 'rsvp-2', 'rsvp-3', 'rsvp-4']);
         const localRsvps: RsvpSubmission[] = raw.filter((r: any) => !fakeIds.has(r?.id) && r?.name !== 'Kasia & Mateusz' && r?.name !== 'Viktor K.' && r?.name !== 'Tomek (The Architect)' && r?.name !== 'Anna & Friends');
-        if (localRsvps.length !== raw.length) {
-          localStorage.setItem('alans_rsvps', JSON.stringify(localRsvps));
+        
+        // Merge Firestore and local without duplicates
+        const combinedMap = new Map<string, RsvpSubmission>();
+        localRsvps.forEach(r => combinedMap.set(r.id, r));
+        firestoreRsvps.forEach(r => combinedMap.set(r.id, r));
+        const finalRsvps = Array.from(combinedMap.values());
+
+        if (finalRsvps.length > 0) {
+          try {
+            localStorage.setItem('alans_rsvps', JSON.stringify(finalRsvps));
+          } catch {}
         }
         const myRes: Record<string, boolean> = JSON.parse(localStorage.getItem('alans_my_reservations') || '{}');
         const localWishlist = INITIAL_WISHLIST.map(item => ({
           ...item,
           isReserved: !!myRes[item.id] || item.isReserved
         }));
-        setRsvps(localRsvps);
+        setRsvps(finalRsvps);
         setWishlist(localWishlist);
-        setStats(calculateLocalStats(localRsvps, localWishlist));
+        setStats(calculateLocalStats(finalRsvps, localWishlist));
       }
     } catch (err) {
       console.error('Error loading admin records:', err);
@@ -205,6 +231,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleToggleCheckIn = async (rsvp: RsvpSubmission) => {
     if (!adminToken) return;
     try {
+      try {
+        await updateRsvpCheckInFirestore(rsvp.id, !rsvp.checkedIn);
+      } catch (fsErr) {
+        console.warn('Firestore check-in update error:', fsErr);
+      }
+
       try {
         await fetch(`/api/admin/rsvps/${rsvp.id}`, {
           method: 'PATCH',
@@ -232,6 +264,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleDeleteRsvp = async (id: string, name: string) => {
     if (!adminToken || !window.confirm(`Remove ${name} from RSVP list?`)) return;
     try {
+      try {
+        await deleteRsvpFromFirestore(id);
+      } catch (fsErr) {
+        console.warn('Firestore delete error:', fsErr);
+      }
+
       try {
         await fetch(`/api/admin/rsvps/${id}`, {
           method: 'DELETE',
@@ -266,6 +304,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         checkedIn: false,
         createdAt: new Date().toISOString()
       };
+
+      try {
+        await saveRsvpToFirestore(newRsvp);
+      } catch (fsErr) {
+        console.warn('Firestore manual add error:', fsErr);
+      }
 
       try {
         await fetch('/api/admin/rsvps', {
@@ -642,6 +686,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 1. GUEST REGISTRATION TAB */}
       {adminTab === 'guests' && (
         <div className="space-y-4">
+          {/* WhatsApp Direct RSVP Setting */}
+          <div className="bg-[#111319] border border-emerald-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3 shadow-md">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                <MessageCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-xs font-mono font-bold text-emerald-300 uppercase tracking-wider">
+                  DIRECT WHATSAPP CONFIRMATION ROUTING
+                </div>
+                <div className="text-[11px] text-zinc-400">
+                  When guests confirm RSVP, they get a 1-click button to send their name & headcount directly to your WhatsApp!
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <input
+                type="tel"
+                placeholder="Alan's WhatsApp (e.g. +48... or +55...)"
+                value={whatsappPhone}
+                onChange={(e) => {
+                  setWhatsappPhone(e.target.value);
+                  localStorage.setItem('alans_whatsapp_phone', e.target.value);
+                  showNotification('WhatsApp phone number updated!');
+                }}
+                className="px-3.5 py-2 rounded-xl bg-[#161822] border border-[#272c3d] text-xs text-emerald-200 placeholder-zinc-500 focus:border-emerald-400 focus:outline-none w-full md:w-72 font-mono"
+              />
+            </div>
+          </div>
+
           {/* Controls bar: Search & Filters */}
           <div className="bg-[#111319] border border-[#242836] p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
             {/* Search Input */}

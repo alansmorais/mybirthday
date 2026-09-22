@@ -16,6 +16,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { subscribeToRsvps } from '../lib/firebase';
 
 interface CompactInvitationCardProps {
   onOpenRsvp: (initialView?: 'form' | 'roster') => void;
@@ -41,6 +42,23 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
   const AVATAR_URL = 'https://avatars.githubusercontent.com/u/78435965?s=400&u=085533adc24d2ec6471affc4d4bc6ea051882a28&v=4';
 
   useEffect(() => {
+    // Real-time Firestore sync
+    let unsub = () => {};
+    try {
+      unsub = subscribeToRsvps((items) => {
+        if (items && items.length > 0) {
+          const yes = items.filter((r: any) => r.status === 'YES');
+          setPublicStats({
+            totalHeadcount: yes.reduce((acc: number, cur: any) => acc + (cur.guestCount || 1), 0),
+            attendingCount: yes.length,
+            confirmedAttendees: yes
+          });
+        }
+      });
+    } catch (e) {
+      console.warn('Firestore subscription fallback in card:', e);
+    }
+
     fetch('/api/rsvps/public-stats')
       .then(res => {
         if (!res.ok) throw new Error('Network error');
@@ -68,6 +86,10 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
           });
         } catch {}
       });
+
+    return () => {
+      unsub();
+    };
   }, []);
 
   const handleCopyLocation = () => {

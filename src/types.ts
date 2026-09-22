@@ -19,6 +19,7 @@ export interface WishlistItem {
   category: string;
   iconName: string;
   isReserved: boolean;
+  reservedBy?: string;
   reservedAt?: string;
 }
 

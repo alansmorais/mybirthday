@@ -1,0 +1,75 @@
+{
+  "entities": {
+    "rsvp": {
+      "title": "RSVP Submission",
+      "description": "Guest RSVP response for Alan's 30+ Birthday Celebration",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the RSVP record"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name or nickname of the guest"
+        },
+        "status": {
+          "type": "string",
+          "description": "RSVP attendance status",
+          "enum": ["YES", "MAYBE", "NO"]
+        },
+        "guestCount": {
+          "type": "number",
+          "description": "Total party size (including guest)"
+        },
+        "message": {
+          "type": "string",
+          "description": "Optional toast, joke, or note for Alan"
+        },
+        "checkedIn": {
+          "type": "boolean",
+          "description": "Whether the guest has arrived at the venue"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of submission"
+        }
+      },
+      "required": ["name", "status", "guestCount"]
+    },
+    "wishlistClaim": {
+      "title": "Wishlist Reservation",
+      "description": "Gift reservation to prevent duplicate gifts",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique ID or item key for the reserved gift"
+        },
+        "itemId": {
+          "type": "string",
+          "description": "ID of the wishlist item being claimed"
+        },
+        "reservedBy": {
+          "type": "string",
+          "description": "Name of the guest reserving the gift"
+        },
+        "reservedAt": {
+          "type": "string",
+          "description": "ISO timestamp of the reservation"
+        }
+      },
+      "required": ["itemId", "reservedBy"]
+    }
+  },
+  "firestore": {
+    "/rsvps/{rsvpId}": {
+      "schema": "rsvp",
+      "description": "RSVP submissions submitted by guests"
+    },
+    "/wishlistClaims/{claimId}": {
+      "schema": "wishlistClaim",
+      "description": "Gift reservations chosen by guests"
+    }
+  }
+}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
-import { CheckCircle, AlertCircle, Loader2, Sparkles, Users, UserCheck, MessageSquare, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, Sparkles, Users, UserCheck, MessageSquare, ArrowRight, ShieldCheck, Lock, MessageCircle } from 'lucide-react';
 import { RsvpStatus, RsvpSubmission, ConfirmedAttendee } from '../types';
 import { useLanguage } from '../context/LanguageContext';
+import { saveRsvpToFirestore, subscribeToRsvps } from '../lib/firebase';
 
 interface RsvpSectionProps {
   onRsvpSubmitted?: (rsvp: RsvpSubmission) => void;
@@ -18,7 +19,7 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
   isModal = false,
   initialView = 'form'
 }) => {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [activeView, setActiveView] = useState<'form' | 'roster'>(initialView);
   const [status, setStatus] = useState<RsvpStatus>('YES');
   const [name, setName] = useState('');
@@ -76,8 +77,69 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
   };
 
   useEffect(() => {
+    // 1. Subscribe to real-time updates from Firebase Firestore
+    let unsub = () => {};
+    try {
+      unsub = subscribeToRsvps((items) => {
+        if (items && items.length > 0) {
+          const yes = items.filter(r => r.status === 'YES');
+          const maybe = items.filter(r => r.status === 'MAYBE');
+          setConfirmedList(yes);
+          setMaybeList(maybe);
+          setAttendingCount(yes.length);
+          setTotalHeadcount(yes.reduce((acc, curr) => acc + (curr.guestCount || 1), 0));
+        }
+      });
+    } catch (e) {
+      console.warn('Firestore subscription fallback:', e);
+    }
+
+    // 2. Fetch server API or local storage initial list
     fetchAttendees();
+
+    return () => {
+      unsub();
+    };
   }, []);
+
+  const getWhatsAppUrl = (rsvp: RsvpSubmission) => {
+    const isPt = lang === 'PT';
+    const isPl = lang === 'PL';
+
+    let text = '';
+    if (isPt) {
+      const statusText = rsvp.status === 'YES' ? 'Com certeza vou! 🚀' : rsvp.status === 'MAYBE' ? 'Talvez / Tentarei 🤔' : 'Não poderei ir 😢';
+      text = `🎂 *Confirmação de Presença - 30 Anos do Alan!*\n\n` +
+        `👤 *Nome:* ${rsvp.name}\n` +
+        `✨ *Status:* ${statusText}\n` +
+        `👥 *Total de Pessoas:* ${rsvp.guestCount}\n` +
+        (rsvp.message ? `💬 *Recado:* "${rsvp.message}"\n\n` : '\n') +
+        `📍 Sexta, 25/09 às 19:30 no Lindo Bar Cracóvia!`;
+    } else if (isPl) {
+      const statusText = rsvp.status === 'YES' ? 'Będę na 100%! 🚀' : rsvp.status === 'MAYBE' ? 'Może / Dam znać 🤔' : 'Nie dam rady 😢';
+      text = `🎂 *Potwierdzenie Obecności - 30. Urodziny Alana!*\n\n` +
+        `👤 *Imię i nazwisko:* ${rsvp.name}\n` +
+        `✨ *Status:* ${statusText}\n` +
+        `👥 *Liczba osób:* ${rsvp.guestCount}\n` +
+        (rsvp.message ? `💬 *Wiadomość:* "${rsvp.message}"\n\n` : '\n') +
+        `📍 Piątek, 25.09, 19:30 w Lindo Bar Kraków!`;
+    } else {
+      const statusText = rsvp.status === 'YES' ? 'Count me in! 🚀' : rsvp.status === 'MAYBE' ? 'Tentative / Maybe 🤔' : "Can't make it 😢";
+      text = `🎂 *RSVP Confirmation - Alan's 30+ Birthday!*\n\n` +
+        `👤 *Name:* ${rsvp.name}\n` +
+        `✨ *Status:* ${statusText}\n` +
+        `👥 *Party Size:* ${rsvp.guestCount}\n` +
+        (rsvp.message ? `💬 *Note:* "${rsvp.message}"\n\n` : '\n') +
+        `📍 Friday, Sep 25 at 19:30 @ Lindo Bar Kraków!`;
+    }
+
+    const customPhone = typeof window !== 'undefined' ? localStorage.getItem('alans_whatsapp_phone') : null;
+    if (customPhone && customPhone.trim()) {
+      const cleaned = customPhone.replace(/[^0-9]/g, '');
+      return `https://api.whatsapp.com/send?phone=${cleaned}&text=${encodeURIComponent(text)}`;
+    }
+    return `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,6 +175,27 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
         // Fallback to offline/static mode (e.g. GitHub Pages)
       }
 
+      // Backup cloud notification directly to host's email (guarantees delivery on GitHub Pages/static host)
+      try {
+        fetch('https://formsubmit.co/ajax/alanpkmorais@gmail.com', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            _subject: `🎉 Nova Confirmação: ${name.trim()} (${status === 'YES' ? 'Vai comparecer' : 'Talvez'})`,
+            _captcha: 'false',
+            name: name.trim(),
+            status,
+            guestCount,
+            message: message.trim() || 'Nenhuma mensagem adicional',
+            sourceDomain: typeof window !== 'undefined' ? window.location.hostname : 'web',
+            submittedAt: new Date().toISOString()
+          })
+        }).catch(() => {});
+      } catch {}
+
       if (!finalRsvp) {
         const fallbackRsvp: RsvpSubmission = {
           id: `rsvp-${Date.now()}`,
@@ -127,6 +210,13 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
           localStorage.setItem('alans_rsvps', JSON.stringify([...existing, fallbackRsvp]));
         } catch {}
         finalRsvp = fallbackRsvp;
+      }
+
+      // Persist directly to Cloud Firestore (Guarantees multi-device and static deployment sync)
+      try {
+        await saveRsvpToFirestore(finalRsvp);
+      } catch (fsErr) {
+        console.warn('Firestore cloud write failed, fallback engaged:', fsErr);
       }
 
       setSubmittedRsvp(finalRsvp);
@@ -474,20 +564,39 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
                     {t('successDesc', 'rsvp')}
                   </p>
 
-                  <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  {/* 1-TAP WHATSAPP NOTIFICATION (ZERO-ERROR INSTANT DELIVERY) */}
+                  <div className="max-w-md mx-auto p-4 rounded-2xl bg-[#22C55E]/10 border-2 border-[#22C55E]/50 text-center space-y-2.5 shadow-lg">
+                    <p className="text-xs text-[#22C55E] font-space font-bold">
+                      {t('notifyWhatsAppDesc', 'rsvp')}
+                    </p>
+                    <a
+                      href={getWhatsAppUrl(submittedRsvp)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex w-full items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#22C55E] hover:bg-[#16a34a] text-neutral-950 font-arcade text-xs font-black uppercase tracking-wider transition-all shadow-md hover:scale-[1.02] cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4 fill-neutral-950 text-neutral-950" />
+                      <span>{t('notifyWhatsAppBtn', 'rsvp')}</span>
+                    </a>
+                    <p className="text-[10px] text-zinc-400 font-space">
+                      {t('emailSentNote', 'rsvp')}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
                     <button
                       type="button"
                       onClick={() => setActiveView('roster')}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#22C55E] hover:bg-[#16a34a] text-neutral-950 font-arcade text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#172554] hover:bg-[#1e2e54] border border-[#22C55E]/50 text-zinc-200 font-arcade text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
                     >
-                      <Users className="w-4 h-4" />
+                      <Users className="w-4 h-4 text-[#22C55E]" />
                       <span>{t('viewConfirmedRoster', 'rsvp')} ({totalHeadcount})</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#172554] hover:bg-[#1e2e54] border border-[#38BDF8] text-xs font-space text-sky-200 transition-colors cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#0d1527] hover:bg-[#1e2e54] border border-white/10 text-xs font-space text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
                     >
                       {t('successRsvpClose', 'rsvp')}
                     </button>

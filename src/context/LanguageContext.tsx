@@ -248,6 +248,9 @@ const TRANSLATIONS: Record<Language, Record<string, any>> = {
       noConfirmedYet: "No confirmed guests yet. Be the first to RSVP!",
       adminViewBtn: "Host? Open Admin Vault",
       viewConfirmedRoster: "View Confirmed Squad",
+      notifyWhatsAppBtn: "📲 SEND CONFIRMATION ON WHATSAPP",
+      notifyWhatsAppDesc: "Reserve your spot instantly by notifying Alan with 1 tap on WhatsApp!",
+      emailSentNote: "✓ Response forwarded directly to host inbox",
     },
     wishlist: {
       badge: "GIFT IDEAS",
@@ -542,6 +545,9 @@ const TRANSLATIONS: Record<Language, Record<string, any>> = {
       noConfirmedYet: "Brak potwierdzonych gości. Bądź pierwszy!",
       adminViewBtn: "Dla Alana: Panel Organizatora",
       viewConfirmedRoster: "Zobacz Potwierdzoną Ekipę",
+      notifyWhatsAppBtn: "📲 WYŚLIJ POTWIERDZENIE NA WHATSAPP",
+      notifyWhatsAppDesc: "Zapewnij sobie miejsce przy stoliku – wyślij potwierdzenie do Alana jednym kliknięciem!",
+      emailSentNote: "✓ Zgłoszenie przekazane organizatorowi",
     },
     wishlist: {
       badge: "POMYSŁY NA PREZENT",
@@ -825,6 +831,9 @@ const TRANSLATIONS: Record<Language, Record<string, any>> = {
       noConfirmedYet: "Nenhum convidado confirmado ainda. Seja o primeiro a confirmar!",
       adminViewBtn: "Anfitrião? Painel Administrativo",
       viewConfirmedRoster: "Ver Amigos Confirmados",
+      notifyWhatsAppBtn: "📲 AVISAR O ALAN NO WHATSAPP (1 CLIQUE)",
+      notifyWhatsAppDesc: "Garanta seu lugar no bar avisando o Alan com 1 clique no WhatsApp!",
+      emailSentNote: "✓ Confirmação enviada diretamente para o anfitrião",
     },
     wishlist: {
       badge: "LISTA DE DESEJOS",

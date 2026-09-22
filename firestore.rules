@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'alanpkmorais@gmail.com' ||
+        request.auth.token.email_verified == true && request.auth.token.email == 'alanpkmorais@gmail.com'
+      );
+    }
+
+    function isValidRsvp(data) {
+      return data.name is string &&
+        data.name.size() > 0 &&
+        data.name.size() <= 100 &&
+        data.status in ['YES', 'MAYBE', 'NO'] &&
+        data.guestCount is number &&
+        data.guestCount >= 1 &&
+        data.guestCount <= 20;
+    }
+
+    function isValidWishlistClaim(data) {
+      return data.itemId is string &&
+        data.itemId.size() > 0 &&
+        data.reservedBy is string &&
+        data.reservedBy.size() > 0 &&
+        data.reservedBy.size() <= 100;
+    }
+
+    // RSVPs collection
+    match /rsvps/{rsvpId} {
+      allow read: if true;
+      allow create: if isValidRsvp(request.resource.data);
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['checkedIn']) &&
+        request.resource.data.checkedIn is bool
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Wishlist claims collection
+    match /wishlistClaims/{claimId} {
+      allow read: if true;
+      allow create, update: if isValidWishlistClaim(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read: if true;
+    }
+  }
+}

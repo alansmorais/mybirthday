@@ -16,6 +16,11 @@ import {
 import { WishlistItem } from '../types';
 import { INITIAL_WISHLIST } from '../data/initialWishlist';
 import { useLanguage } from '../context/LanguageContext';
+import {
+  subscribeToWishlistClaims,
+  claimWishlistItemInFirestore,
+  unclaimWishlistItemInFirestore
+} from '../lib/firebase';
 
 interface WishlistSectionProps {
   onReservationChanged?: () => void;
@@ -36,7 +41,28 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
       }
     } catch {}
 
+    // Subscribe to live cloud Firestore reservations
+    let unsub = () => {};
+    try {
+      unsub = subscribeToWishlistClaims((claims) => {
+        setItems(prev => prev.map(item => {
+          const isClaimed = !!claims[item.id];
+          return {
+            ...item,
+            isReserved: isClaimed,
+            reservedBy: claims[item.id]?.reservedBy || item.reservedBy
+          };
+        }));
+      });
+    } catch (e) {
+      console.warn('Firestore wishlist sync fallback:', e);
+    }
+
     fetchWishlist();
+
+    return () => {
+      unsub();
+    };
   }, []);
 
   const fetchWishlist = async () => {
@@ -56,6 +82,17 @@ export const WishlistSection: React.FC<WishlistSectionProps> = ({ onReservationC
     try {
       let nextReservedState = !item.isReserved;
       let apiSuccess = false;
+
+      // 1. Direct Firestore sync
+      try {
+        if (nextReservedState) {
+          await claimWishlistItemInFirestore(item.id, 'Friend of Alan');
+        } else {
+          await unclaimWishlistItemInFirestore(item.id);
+        }
+      } catch (fsErr) {
+        console.warn('Firestore claim error, using fallback:', fsErr);
+      }
 
       try {
         const res = await fetch(`/api/wishlist/${item.id}/reserve`, {
