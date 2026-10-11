@@ -12,17 +12,13 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  XCircle,
-  HelpCircle,
   RefreshCw,
-  Eye,
-  EyeOff,
   ArrowLeft,
   Sparkles,
-  Check,
-  ShieldCheck,
   PhoneCall,
-  MessageCircle
+  MessageCircle,
+  Copy,
+  Check
 } from 'lucide-react';
 import { RsvpSubmission, WishlistItem, AdminStats } from '../types';
 import { INITIAL_WISHLIST } from '../data/initialWishlist';
@@ -30,11 +26,11 @@ import {
   getRsvpsFromFirestore,
   updateRsvpCheckInFirestore,
   deleteRsvpFromFirestore,
-  saveRsvpToFirestore
+  saveRsvpToFirestore,
+  clearAllRsvpsFromFirestore,
+  clearAllWishlistClaimsFromFirestore
 } from '../lib/firebase';
 
-// --- ADMIN PASSWORD CONFIGURATION FOR GITHUB PAGES ---
-// You can edit this fallback password directly in the code for your static site!
 const GITHUB_PAGES_ADMIN_PASSWORD = 'Dupa1989%';
 
 interface AdminDashboardProps {
@@ -56,167 +52,101 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Admin Data State
   const [rsvps, setRsvps] = useState<RsvpSubmission[]>([]);
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
-  const [stats, setStats] = useState<AdminStats | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'rsvps' | 'wishlist' | 'settings'>('rsvps');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'YES' | 'MAYBE' | 'NO'>('ALL');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
 
-  // Add Manual Guest Modal
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [manualName, setManualName] = useState('');
-  const [manualStatus, setManualStatus] = useState<'YES' | 'MAYBE' | 'NO'>('YES');
-  const [manualGuests, setManualGuests] = useState(1);
-  const [manualMessage, setManualMessage] = useState('');
+  // Manual Add RSVP Form
+  const [isAddingRsvp, setIsAddingRsvp] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newStatus, setNewStatus] = useState<'YES' | 'MAYBE' | 'NO'>('YES');
+  const [newGuestCount, setNewGuestCount] = useState(1);
+  const [newMessage, setNewMessage] = useState('');
 
-  // Active view tab in admin
-  const [adminTab, setAdminTab] = useState<'guests' | 'wishlist'>('guests');
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
-  const [whatsappPhone, setWhatsappPhone] = useState(() => {
-    return typeof window !== 'undefined' ? (localStorage.getItem('alans_whatsapp_phone') || '') : '';
-  });
+  // WhatsApp and Pix Configuration
+  const [pixKey, setPixKey] = useState('34776327880');
+  const [whatsAppPhone, setWhatsAppPhone] = useState('');
+  const [configSaved, setConfigSaved] = useState(false);
 
-  const showNotification = (msg: string) => {
-    setActionSuccess(msg);
-    setTimeout(() => setActionSuccess(null), 3000);
-  };
+  useEffect(() => {
+    try {
+      const savedPix = localStorage.getItem('twins_pix_key');
+      if (savedPix) setPixKey(savedPix);
+      const savedPhone = localStorage.getItem('twins_whatsapp_phone');
+      if (savedPhone) setWhatsAppPhone(savedPhone);
+    } catch {}
+  }, []);
 
-  const calculateLocalStats = (rsvpList: RsvpSubmission[], wishlistItems: WishlistItem[]): AdminStats => {
-    const totalHeadcount = rsvpList
-      .filter(r => r.status === 'YES')
-      .reduce((sum, r) => sum + (r.guestCount || 1), 0);
-    const yesCount = rsvpList.filter(r => r.status === 'YES').length;
-    const maybeCount = rsvpList.filter(r => r.status === 'MAYBE').length;
-    const noCount = rsvpList.filter(r => r.status === 'NO').length;
-    const reservedWishlistCount = wishlistItems.filter(w => w.isReserved).length;
+  const calculateStats = (rsvpList: RsvpSubmission[], wishList: WishlistItem[]) => {
+    const totalSubmissions = rsvpList.length;
+    const yesRsvps = rsvpList.filter(r => r.status === 'YES');
+    const maybeRsvps = rsvpList.filter(r => r.status === 'MAYBE');
+    const noRsvps = rsvpList.filter(r => r.status === 'NO');
+
+    const totalHeadcount = yesRsvps.reduce((acc, curr) => acc + (Number(curr.guestCount) || 1), 0);
+    const checkedInCount = yesRsvps.filter(r => r.checkedIn).reduce((acc, curr) => acc + (Number(curr.guestCount) || 1), 0);
+
+    const reservedGifts = wishList.filter(w => w.isReserved).length;
+    const totalGifts = wishList.length;
 
     return {
-      totalRsvps: rsvpList.length,
+      totalSubmissions,
+      attendingCount: yesRsvps.length,
+      maybeCount: maybeRsvps.length,
+      declinedCount: noRsvps.length,
       totalHeadcount,
-      yesCount,
-      yesHeadcount: totalHeadcount,
-      maybeCount,
-      noCount,
-      reservedWishlistCount,
-      totalWishlistCount: wishlistItems.length
+      checkedInCount,
+      checkedInPercentage: totalHeadcount > 0 ? Math.round((checkedInCount / totalHeadcount) * 100) : 0,
+      reservedGifts,
+      totalGifts,
+      giftClaimPercentage: totalGifts > 0 ? Math.round((reservedGifts / totalGifts) * 100) : 0
     };
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginError(null);
     setIsAuthenticating(true);
+    setLoginError(null);
 
-    const trimmedPassword = password.trim();
-
-    try {
-      let tokenToSave: string | null = null;
+    const entered = password.trim();
+    if (entered === 'daddy2026' || entered === 'Dupa1989%' || entered === GITHUB_PAGES_ADMIN_PASSWORD) {
+      const token = `token-${Date.now()}`;
+      setAdminToken(token);
       try {
-        const res = await fetch('/api/admin/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ password: trimmedPassword })
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          tokenToSave = data.token || trimmedPassword;
-        } else if (res.status === 401) {
-          throw new Error('Incorrect password.');
-        } else {
-          // Trigger fallback for 404/static server responses
-          throw new Error('FALLBACK');
-        }
-      } catch (networkErr: any) {
-        if (networkErr.message === 'Incorrect password.') {
-          throw networkErr;
-        }
-        // Fallback for static GitHub Pages or server unreachable
-        const validClientPasswords = [
-          (import.meta as any).env?.VITE_ADMIN_PASSWORD,
-          GITHUB_PAGES_ADMIN_PASSWORD,
-          'daddy2026',
-          'Dupa1989%'
-        ].filter(Boolean);
-        if (validClientPasswords.includes(trimmedPassword)) {
-          tokenToSave = trimmedPassword;
-        } else {
-          throw new Error('Incorrect password.');
-        }
-      }
-
-      if (tokenToSave) {
-        setAdminToken(tokenToSave);
-        sessionStorage.setItem('alans_admin_token', tokenToSave);
-      }
-    } catch (err: any) {
-      setLoginError(err.message || 'Incorrect password.');
-    } finally {
+        sessionStorage.setItem('alans_admin_token', token);
+      } catch {}
+      setIsAuthenticating(false);
+      loadData();
+    } else {
+      setLoginError('Senha incorreta.');
       setIsAuthenticating(false);
     }
   };
 
-  const fetchAdminData = async () => {
-    if (!adminToken) return;
+  const loadData = async () => {
     setIsLoading(true);
     try {
-      let dataLoaded = false;
+      // Purge any legacy keys from previous app
+      try { localStorage.removeItem('alans_rsvps'); } catch {}
+
+      let firestoreRsvps: RsvpSubmission[] = [];
       try {
-        const res = await fetch('/api/admin/rsvps', {
-          headers: {
-            Authorization: `Bearer ${adminToken}`
-          }
-        });
-        if (res.status === 401) {
-          setAdminToken(null);
-          sessionStorage.removeItem('alans_admin_token');
-          setLoginError('Session expired. Please re-enter backend password.');
-          return;
-        }
-        if (res.ok) {
-          const data = await res.json();
-          setRsvps(data.rsvps || []);
-          setWishlist(data.wishlist || []);
-          setStats(data.stats || null);
-          dataLoaded = true;
-        }
-      } catch {
-        // Fallback to local storage for static hosting
+        firestoreRsvps = await getRsvpsFromFirestore();
+      } catch (fsErr) {
+        console.warn('Firestore load:', fsErr);
       }
 
-      if (!dataLoaded) {
-        let firestoreRsvps: RsvpSubmission[] = [];
-        try {
-          firestoreRsvps = await getRsvpsFromFirestore();
-        } catch (fsErr) {
-          console.warn('Firestore admin load error:', fsErr);
-        }
+      const raw = JSON.parse(localStorage.getItem('twins_rsvps') || '[]');
+      const combinedMap = new Map<string, RsvpSubmission>();
+      raw.forEach((r: any) => combinedMap.set(r.id, r));
+      firestoreRsvps.forEach((r: any) => combinedMap.set(r.id, r));
+      const finalRsvps = Array.from(combinedMap.values());
 
-        const raw = JSON.parse(localStorage.getItem('alans_rsvps') || '[]');
-        const fakeIds = new Set(['rsvp-1', 'rsvp-2', 'rsvp-3', 'rsvp-4']);
-        const localRsvps: RsvpSubmission[] = raw.filter((r: any) => !fakeIds.has(r?.id) && r?.name !== 'Kasia & Mateusz' && r?.name !== 'Viktor K.' && r?.name !== 'Tomek (The Architect)' && r?.name !== 'Anna & Friends');
-        
-        // Merge Firestore and local without duplicates
-        const combinedMap = new Map<string, RsvpSubmission>();
-        localRsvps.forEach(r => combinedMap.set(r.id, r));
-        firestoreRsvps.forEach(r => combinedMap.set(r.id, r));
-        const finalRsvps = Array.from(combinedMap.values());
-
-        if (finalRsvps.length > 0) {
-          try {
-            localStorage.setItem('alans_rsvps', JSON.stringify(finalRsvps));
-          } catch {}
-        }
-        const myRes: Record<string, boolean> = JSON.parse(localStorage.getItem('alans_my_reservations') || '{}');
-        const localWishlist = INITIAL_WISHLIST.map(item => ({
-          ...item,
-          isReserved: !!myRes[item.id] || item.isReserved
-        }));
-        setRsvps(finalRsvps);
-        setWishlist(localWishlist);
-        setStats(calculateLocalStats(finalRsvps, localWishlist));
-      }
+      setRsvps(finalRsvps);
+      setWishlist(INITIAL_WISHLIST);
     } catch (err) {
-      console.error('Error loading admin records:', err);
+      console.error('Erro ao carregar dados:', err);
     } finally {
       setIsLoading(false);
     }
@@ -224,767 +154,499 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   useEffect(() => {
     if (adminToken) {
-      fetchAdminData();
+      loadData();
     }
   }, [adminToken]);
 
   const handleToggleCheckIn = async (rsvp: RsvpSubmission) => {
-    if (!adminToken) return;
+    const nextCheckIn = !rsvp.checkedIn;
     try {
-      try {
-        await updateRsvpCheckInFirestore(rsvp.id, !rsvp.checkedIn);
-      } catch (fsErr) {
-        console.warn('Firestore check-in update error:', fsErr);
-      }
+      await updateRsvpCheckInFirestore(rsvp.id, nextCheckIn);
+    } catch {}
 
-      try {
-        await fetch(`/api/admin/rsvps/${rsvp.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify({ checkedIn: !rsvp.checkedIn })
-        });
-      } catch {}
-
-      setRsvps(prev => {
-        const updated = prev.map(r => (r.id === rsvp.id ? { ...r, checkedIn: !rsvp.checkedIn } : r));
-        try {
-          localStorage.setItem('alans_rsvps', JSON.stringify(updated));
-        } catch {}
-        return updated;
-      });
-      showNotification(`Updated check-in status for ${rsvp.name}`);
-    } catch (err) {
-      console.error(err);
-    }
+    setRsvps(prev => prev.map(r => r.id === rsvp.id ? { ...r, checkedIn: nextCheckIn } : r));
+    try {
+      const raw = JSON.parse(localStorage.getItem('twins_rsvps') || '[]');
+      const updated = raw.map((r: any) => r.id === rsvp.id ? { ...r, checkedIn: nextCheckIn } : r);
+      localStorage.setItem('twins_rsvps', JSON.stringify(updated));
+    } catch {}
   };
 
   const handleDeleteRsvp = async (id: string, name: string) => {
-    if (!adminToken || !window.confirm(`Remove ${name} from RSVP list?`)) return;
+    if (!window.confirm(`Remover confirmação de "${name}"?`)) return;
     try {
-      try {
-        await deleteRsvpFromFirestore(id);
-      } catch (fsErr) {
-        console.warn('Firestore delete error:', fsErr);
-      }
-
-      try {
-        await fetch(`/api/admin/rsvps/${id}`, {
-          method: 'DELETE',
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
-      } catch {}
-
-      setRsvps(prev => {
-        const updated = prev.filter(r => r.id !== id);
-        try {
-          localStorage.setItem('alans_rsvps', JSON.stringify(updated));
-        } catch {}
-        return updated;
-      });
-      showNotification(`Removed ${name} from registry.`);
-    } catch (err) {
-      console.error(err);
-    }
+      await deleteRsvpFromFirestore(id);
+    } catch {}
+    setRsvps(prev => prev.filter(r => r.id !== id));
+    try {
+      const raw = JSON.parse(localStorage.getItem('twins_rsvps') || '[]');
+      const updated = raw.filter((r: any) => r.id !== id);
+      localStorage.setItem('twins_rsvps', JSON.stringify(updated));
+    } catch {}
   };
 
-  const handleAddManualGuest = async (e: React.FormEvent) => {
+  const handleManualAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminToken || !manualName.trim()) return;
+    if (!newName.trim()) return;
+
+    const newRsvp: RsvpSubmission = {
+      id: `manual-${Date.now()}`,
+      name: newName.trim(),
+      status: newStatus,
+      guestCount: Number(newGuestCount) || 1,
+      message: newMessage.trim(),
+      checkedIn: false,
+      createdAt: new Date().toISOString()
+    };
 
     try {
-      const newRsvp: RsvpSubmission = {
-        id: `rsvp-${Date.now()}`,
-        name: manualName.trim(),
-        status: manualStatus,
-        guestCount: manualGuests,
-        message: manualMessage.trim(),
-        checkedIn: false,
-        createdAt: new Date().toISOString()
-      };
+      await saveRsvpToFirestore(newRsvp);
+    } catch {}
 
-      try {
-        await saveRsvpToFirestore(newRsvp);
-      } catch (fsErr) {
-        console.warn('Firestore manual add error:', fsErr);
-      }
+    setRsvps(prev => [newRsvp, ...prev]);
+    try {
+      const raw = JSON.parse(localStorage.getItem('twins_rsvps') || '[]');
+      raw.unshift(newRsvp);
+      localStorage.setItem('twins_rsvps', JSON.stringify(raw));
+    } catch {}
 
+    setNewName('');
+    setNewMessage('');
+    setIsAddingRsvp(false);
+  };
+
+  const [isClearing, setIsClearing] = useState(false);
+  const [clearSuccess, setClearSuccess] = useState(false);
+
+  const handleClearEntireBackend = async () => {
+    if (!window.confirm('Atenção: Deseja realmente limpar 100% dos registros do backend (Firestore, RSVPs e Mimos)?')) {
+      return;
+    }
+
+    setIsClearing(true);
+    try {
+      // 1. Limpar Firestore
+      await clearAllRsvpsFromFirestore();
+      await clearAllWishlistClaimsFromFirestore();
+
+      // 2. Limpar storage local
       try {
-        await fetch('/api/admin/rsvps', {
+        localStorage.removeItem('twins_rsvps');
+        localStorage.removeItem('alans_rsvps');
+      } catch {}
+
+      // 3. Notificar backend local (se ativo)
+      try {
+        await fetch('/api/admin/clear-all', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${adminToken}`
-          },
-          body: JSON.stringify(newRsvp)
+            'Authorization': `Bearer ${adminToken || 'daddy2026'}`
+          }
         });
       } catch {}
 
-      setRsvps(prev => {
-        const updated = [newRsvp, ...prev];
-        try {
-          localStorage.setItem('alans_rsvps', JSON.stringify(updated));
-        } catch {}
-        return updated;
-      });
-
-      setShowAddModal(false);
-      setManualName('');
-      setManualMessage('');
-      setManualGuests(1);
-      showNotification('Guest added successfully!');
+      // 4. Resetar estados
+      setRsvps([]);
+      setWishlist(INITIAL_WISHLIST.map(item => ({ ...item, isReserved: false })));
+      setClearSuccess(true);
+      setTimeout(() => setClearSuccess(false), 4000);
     } catch (err) {
-      console.error(err);
+      console.error('Erro na limpeza:', err);
+      alert('Houve um erro ao limpar. Verifique o console.');
+    } finally {
+      setIsClearing(false);
     }
   };
 
-  const handleDownloadCsv = () => {
-    if (!adminToken) return;
+  const handleSaveConfig = (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      // Build client-side CSV Blob for guaranteed instant download everywhere
-      const headers = ['Name', 'Status', 'Headcount', 'Message', 'Checked In', 'Submitted At'];
-      const rows = rsvps.map(r => [
-        `"${(r.name || '').replace(/"/g, '""')}"`,
-        `"${r.status}"`,
-        r.guestCount || 1,
-        `"${(r.message || '').replace(/"/g, '""')}"`,
-        r.checkedIn ? 'YES' : 'NO',
-        `"${r.createdAt || ''}"`
-      ]);
-      const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `alans-30-birthday-rsvps-${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch {
-      window.location.href = `/api/admin/export/csv?password=${encodeURIComponent(adminToken)}`;
-    }
+      localStorage.setItem('twins_pix_key', pixKey.trim());
+      localStorage.setItem('twins_whatsapp_phone', whatsAppPhone.trim());
+      setConfigSaved(true);
+      setTimeout(() => setConfigSaved(false), 3000);
+    } catch {}
   };
 
-  const handleResetWishlist = async () => {
-    if (!adminToken || !window.confirm('Reset all wishlist reservations to available?')) return;
-    try {
-      try {
-        await fetch('/api/admin/wishlist/reset', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${adminToken}` }
-        });
-      } catch {}
+  const stats = calculateStats(rsvps, wishlist);
 
-      localStorage.removeItem('alans_my_reservations');
-      setWishlist(INITIAL_WISHLIST);
-      showNotification('Wishlist reservations reset.');
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleLogout = () => {
-    setAdminToken(null);
-    sessionStorage.removeItem('alans_admin_token');
-  };
-
-  // Filtered RSVPs
   const filteredRsvps = rsvps.filter(r => {
-    const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
-    const matchesSearch =
-      r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (r.message && r.message.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesStatus && matchesSearch;
+    const matchesStatus = statusFilter === 'ALL' || r.status === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
-  // 1. Password Lock Screen
   if (!adminToken) {
     return (
-      <div className="min-h-screen pt-28 pb-16 px-4 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md bg-[#111319] border border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden"
-        >
-          <div className="text-center mb-6">
-            <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Lock className="w-6 h-6" />
-            </div>
-            <h2 className="text-2xl font-cinzel font-bold text-gold-gradient">
-              Executive Vault
-            </h2>
-            <p className="text-xs text-zinc-400 font-sans mt-1">
-              Backend password protected area for Daddy Alan.
-            </p>
+      <div className="w-full max-w-md mx-auto px-4 py-12">
+        <div className="p-7 rounded-3xl bg-[#2e0854] border-2 border-pink-500/40 shadow-2xl text-center space-y-4">
+          <div className="w-14 h-14 rounded-2xl bg-pink-500/20 text-pink-300 flex items-center justify-center mx-auto text-2xl">
+            🔒
           </div>
+          <h2 className="text-xl font-arcade text-white">Painel dos Pais (Admin)</h2>
+          <p className="text-xs text-pink-200">
+            Acesso para controle de convidados da festinha das gêmeas Ada e Gabi.
+          </p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-[11px] font-mono uppercase tracking-widest text-amber-400/90 mb-2">
-                Backend Passcode
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter admin password..."
-                  className="w-full px-4 py-3 pr-11 rounded-xl bg-[#161822] border border-[#272c3d] focus:border-amber-400 focus:outline-none text-sm text-zinc-100 placeholder-zinc-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <p className="text-[11px] text-zinc-500 font-mono mt-1.5 flex items-center justify-between">
-                <span>Default passcode: <code className="text-amber-300 font-bold">daddy2026</code></span>
-              </p>
-            </div>
-
+          <form onSubmit={handleLogin} className="space-y-3 pt-2">
             {loginError && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-xs text-red-300">
+              <div className="p-2.5 rounded-xl bg-red-950/80 border border-red-500 text-red-200 text-xs">
                 {loginError}
               </div>
             )}
-
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Digite a senha..."
+              className="w-full px-4 py-3 rounded-xl bg-[#240443] border border-pink-500/40 text-white text-sm focus:outline-none focus:border-pink-300"
+            />
             <button
               type="submit"
               disabled={isAuthenticating}
-              className="w-full py-3 px-4 rounded-xl bg-gold-gradient text-neutral-950 font-cinzel font-bold text-xs uppercase tracking-widest hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer shadow-md disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-600 to-pink-500 hover:from-pink-500 hover:to-pink-400 text-white font-arcade font-bold text-xs tracking-wider cursor-pointer shadow-lg"
             >
-              {isAuthenticating ? 'VERIFYING...' : 'UNLOCK DASHBOARD'}
+              {isAuthenticating ? 'Entrando...' : 'ENTRAR NO PAINEL 🐾'}
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-[#222634] text-center">
-            <button
-              onClick={onBackToInvite}
-              className="text-xs text-zinc-400 hover:text-amber-300 flex items-center justify-center gap-1.5 mx-auto transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Return to Public Invitation</span>
-            </button>
-          </div>
-        </motion.div>
+          <button
+            onClick={onBackToInvite}
+            className="text-xs text-pink-300 hover:text-white underline block mx-auto pt-2 cursor-pointer"
+          >
+            ← Voltar ao Convite
+          </button>
+        </div>
       </div>
     );
   }
 
-  // 2. Full Admin Dashboard Screen
   return (
-    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-6 max-w-6xl mx-auto">
-      {/* Top Admin Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#222633] mb-8">
+    <div className="w-full max-w-4xl mx-auto px-4 py-6 space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-pink-500/20 pb-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold uppercase tracking-wider">
-              ADMINISTRATIVE VAULT
-            </span>
-            <span className="text-xs text-zinc-400 font-mono">Live Sync</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-cinzel font-bold text-gold-gradient mt-1">
-            Alan's 30+ Guest Registry
-          </h1>
+          <button
+            onClick={onBackToInvite}
+            className="text-xs text-pink-300 hover:text-white flex items-center gap-1 cursor-pointer font-bold mb-1"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Voltar ao Convite</span>
+          </button>
+          <h2 className="text-xl sm:text-2xl font-arcade text-white">
+            PAINEL DOS PAIS • GÊMEAS ADA E GABI 🐾
+          </h2>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
-            onClick={fetchAdminData}
-            className="p-2 rounded-lg bg-[#161822] hover:bg-[#1e2230] border border-[#272c3d] text-zinc-300 text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Refresh list"
+            onClick={loadData}
+            className="p-2 rounded-xl bg-[#2e0854] text-pink-300 border border-pink-500/30 hover:text-white cursor-pointer"
+            title="Atualizar dados"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-amber-400' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
-
           <button
-            onClick={handleDownloadCsv}
-            className="px-3 py-2 rounded-lg bg-[#161822] hover:bg-[#1e2230] border border-[#272c3d] text-amber-300 text-xs font-medium flex items-center gap-1.5 transition-colors cursor-pointer"
+            onClick={() => {
+              setAdminToken(null);
+              sessionStorage.removeItem('alans_admin_token');
+            }}
+            className="px-3 py-1.5 rounded-xl bg-purple-950 text-pink-300 hover:text-white text-xs font-bold border border-pink-500/30 cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
-            <span>Export CSV</span>
-          </button>
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="px-3.5 py-2 rounded-lg bg-gold-gradient text-neutral-950 text-xs font-cinzel font-bold flex items-center gap-1.5 hover:brightness-110 transition-all cursor-pointer shadow-sm"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Add Guest</span>
-          </button>
-
-          <button
-            onClick={handleLogout}
-            className="px-3 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-300 text-xs transition-colors cursor-pointer"
-          >
-            Lock Vault
+            Sair
           </button>
         </div>
       </div>
 
-      {actionSuccess && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-200 text-xs flex items-center gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>{actionSuccess}</span>
-        </motion.div>
-      )}
-
-      {/* KPI Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-8">
-        {/* Total Headcount */}
-        <button
-          onClick={() => {
-            setAdminTab('guests');
-            setStatusFilter('YES');
-          }}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
-            statusFilter === 'YES' && adminTab === 'guests'
-              ? 'bg-amber-500/20 border-2 border-amber-400 shadow-xl'
-              : 'bg-[#111319] border border-amber-500/30 hover:border-amber-400 shadow-lg'
-          }`}
-          title="Click to view confirmed guests only"
-        >
-          <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
-            Total Headcount
-          </div>
-          <div className="text-2xl sm:text-3xl font-cinzel font-black text-amber-300">
-            {stats ? stats.totalHeadcount : 0}
-          </div>
-          <div className="text-[10px] text-amber-400/90 font-medium mt-1">Confirmed attendees (Click)</div>
-        </button>
-
-        {/* YES RSVPs */}
-        <button
-          onClick={() => {
-            setAdminTab('guests');
-            setStatusFilter('YES');
-          }}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
-            statusFilter === 'YES' && adminTab === 'guests'
-              ? 'bg-emerald-500/20 border-2 border-emerald-400 shadow-xl'
-              : 'bg-[#111319] border border-[#242836] hover:border-emerald-500/50'
-          }`}
-          title="Click to view confirmed guests only"
-        >
-          <div className="text-[11px] font-mono text-emerald-400 uppercase tracking-wider mb-1">
-            Attending (YES)
-          </div>
-          <div className="text-2xl sm:text-3xl font-cinzel font-bold text-zinc-100">
-            {stats ? stats.yesCount : 0}
-          </div>
-          <div className="text-[10px] text-emerald-400/80 mt-1">Confirmed parties (Click)</div>
-        </button>
-
-        {/* MAYBE */}
-        <button
-          onClick={() => {
-            setAdminTab('guests');
-            setStatusFilter('MAYBE');
-          }}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
-            statusFilter === 'MAYBE' && adminTab === 'guests'
-              ? 'bg-amber-500/20 border-2 border-amber-400 shadow-xl'
-              : 'bg-[#111319] border border-[#242836] hover:border-amber-500/50'
-          }`}
-          title="Click to view negotiating guests"
-        >
-          <div className="text-[11px] font-mono text-amber-400 uppercase tracking-wider mb-1">
-            Negotiating
-          </div>
-          <div className="text-2xl sm:text-3xl font-cinzel font-bold text-zinc-100">
-            {stats ? stats.maybeCount : 0}
-          </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Probable guests</div>
-        </button>
-
-        {/* NO */}
-        <button
-          onClick={() => {
-            setAdminTab('guests');
-            setStatusFilter('NO');
-          }}
-          className={`p-4 rounded-2xl text-left transition-all cursor-pointer ${
-            statusFilter === 'NO' && adminTab === 'guests'
-              ? 'bg-red-500/20 border-2 border-red-400 shadow-xl'
-              : 'bg-[#111319] border border-[#242836] hover:border-red-500/50'
-          }`}
-          title="Click to view declined guests"
-        >
-          <div className="text-[11px] font-mono text-red-400 uppercase tracking-wider mb-1">
-            Declined (NO)
-          </div>
-          <div className="text-2xl sm:text-3xl font-cinzel font-bold text-zinc-100">
-            {stats ? stats.noCount : 0}
-          </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Disappointed Daddy</div>
-        </button>
-
-        {/* Total Registrations */}
-        <div className="p-4 rounded-2xl bg-[#111319] border border-[#242836]">
-          <div className="text-[11px] font-mono text-zinc-400 uppercase tracking-wider mb-1">
-            Total Forms
-          </div>
-          <div className="text-2xl sm:text-3xl font-cinzel font-bold text-zinc-100">
-            {stats ? stats.totalRsvps : 0}
-          </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Total responses</div>
+      {/* Cards de Métricas em Tempo Real */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-4 rounded-2xl bg-[#2e0854] border border-pink-500/30">
+          <span className="text-[10px] font-arcade text-pink-300 uppercase block">TOTAL CONFIRMADOS</span>
+          <div className="text-2xl font-black text-white mt-1">{stats.totalHeadcount}</div>
+          <span className="text-[11px] text-pink-200">pessoas confirmadas</span>
         </div>
 
-        {/* Wishlist Claimed */}
-        <div className="p-4 rounded-2xl bg-[#111319] border border-[#242836]">
-          <div className="text-[11px] font-mono text-amber-300 uppercase tracking-wider mb-1">
-            Gifts Claimed
-          </div>
-          <div className="text-2xl sm:text-3xl font-cinzel font-bold text-amber-300">
-            {stats ? `${stats.reservedWishlistCount}/${stats.totalWishlistCount}` : '0/8'}
-          </div>
-          <div className="text-[10px] text-zinc-500 mt-1">Tributes locked</div>
+        <div className="p-4 rounded-2xl bg-[#2e0854] border border-pink-500/30">
+          <span className="text-[10px] font-arcade text-pink-300 uppercase block">FAMÍLIAS (SIM)</span>
+          <div className="text-2xl font-black text-emerald-400 mt-1">{stats.attendingCount}</div>
+          <span className="text-[11px] text-pink-200">respostas 'Sim'</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-[#2e0854] border border-pink-500/30">
+          <span className="text-[10px] font-arcade text-pink-300 uppercase block">TALVEZ</span>
+          <div className="text-2xl font-black text-amber-400 mt-1">{stats.maybeCount}</div>
+          <span className="text-[11px] text-pink-200">famílias em dúvida</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-[#2e0854] border border-pink-500/30">
+          <span className="text-[10px] font-arcade text-pink-300 uppercase block">CHECK-IN NO LOCAL</span>
+          <div className="text-2xl font-black text-cyan-400 mt-1">{stats.checkedInCount}</div>
+          <span className="text-[11px] text-pink-200">{stats.checkedInPercentage}% dos confirmados</span>
         </div>
       </div>
 
-      {/* Tab Switcher: RSVPs vs Wishlist Manager */}
-      <div className="flex items-center gap-2 mb-6">
+      {/* Abas do Admin */}
+      <div className="flex gap-2 border-b border-pink-500/20 pb-2">
         <button
-          onClick={() => setAdminTab('guests')}
-          className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold tracking-wider transition-all cursor-pointer ${
-            adminTab === 'guests'
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-              : 'bg-[#14161f] text-zinc-400 hover:text-zinc-200 border border-[#232736]'
+          onClick={() => setActiveTab('rsvps')}
+          className={`px-4 py-2 rounded-xl text-xs font-arcade tracking-wider cursor-pointer ${
+            activeTab === 'rsvps' ? 'bg-pink-600 text-white' : 'text-pink-300 hover:text-white'
           }`}
         >
-          <span className="flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5" />
-            <span>GUEST PROTOCOL LIST ({rsvps.length})</span>
-          </span>
+          Lista de Convidados ({rsvps.length})
         </button>
-
         <button
-          onClick={() => setAdminTab('wishlist')}
-          className={`px-4 py-2 rounded-xl text-xs font-mono font-semibold tracking-wider transition-all cursor-pointer ${
-            adminTab === 'wishlist'
-              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-              : 'bg-[#14161f] text-zinc-400 hover:text-zinc-200 border border-[#232736]'
+          onClick={() => setActiveTab('settings')}
+          className={`px-4 py-2 rounded-xl text-xs font-arcade tracking-wider cursor-pointer ${
+            activeTab === 'settings' ? 'bg-pink-600 text-white' : 'text-pink-300 hover:text-white'
           }`}
         >
-          <span className="flex items-center gap-1.5">
-            <Gift className="w-3.5 h-3.5" />
-            <span>WISHLIST STATUS ({stats?.reservedWishlistCount || 0}/8 RESERVED)</span>
-          </span>
+          Configurações (PIX & WhatsApp)
         </button>
       </div>
 
-      {/* 1. GUEST REGISTRATION TAB */}
-      {adminTab === 'guests' && (
+      {activeTab === 'rsvps' && (
         <div className="space-y-4">
-          {/* WhatsApp Direct RSVP Setting */}
-          <div className="bg-[#111319] border border-emerald-500/30 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3 shadow-md">
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                <MessageCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="text-xs font-mono font-bold text-emerald-300 uppercase tracking-wider">
-                  DIRECT WHATSAPP CONFIRMATION ROUTING
-                </div>
-                <div className="text-[11px] text-zinc-400">
-                  When guests confirm RSVP, they get a 1-click button to send their name & headcount directly to your WhatsApp!
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <input
-                type="tel"
-                placeholder="Alan's WhatsApp (e.g. +48... or +55...)"
-                value={whatsappPhone}
-                onChange={(e) => {
-                  setWhatsappPhone(e.target.value);
-                  localStorage.setItem('alans_whatsapp_phone', e.target.value);
-                  showNotification('WhatsApp phone number updated!');
-                }}
-                className="px-3.5 py-2 rounded-xl bg-[#161822] border border-[#272c3d] text-xs text-emerald-200 placeholder-zinc-500 focus:border-emerald-400 focus:outline-none w-full md:w-72 font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Controls bar: Search & Filters */}
-          <div className="bg-[#111319] border border-[#242836] p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-3">
-            {/* Search Input */}
-            <div className="relative w-full md:w-80">
-              <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          {/* Barra de Filtros e Busca */}
+          <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-pink-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search guest or message..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl bg-[#161822] border border-[#272c3d] text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-400"
+                placeholder="Buscar por nome ou recado..."
+                className="w-full pl-9 pr-3 py-2 rounded-xl bg-[#240443] border border-pink-500/30 text-white text-xs focus:outline-none focus:border-pink-300"
               />
             </div>
 
-            {/* Status Filter Buttons */}
-            <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-              {(['ALL', 'YES', 'MAYBE', 'NO'] as const).map(filter => (
-                <button
-                  key={filter}
-                  onClick={() => setStatusFilter(filter)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors cursor-pointer ${
-                    statusFilter === filter
-                      ? 'bg-amber-400 text-neutral-950 font-bold'
-                      : 'bg-[#181b26] text-zinc-400 hover:text-zinc-200 border border-[#262b3a]'
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Registrations List */}
-          <div className="bg-[#111319] border border-[#242836] rounded-2xl overflow-hidden shadow-xl">
-            {filteredRsvps.length === 0 ? (
-              <div className="py-12 text-center text-zinc-500 text-sm font-sans">
-                No matching RSVP protocols found.
-              </div>
-            ) : (
-              <div className="divide-y divide-[#202432]">
-                {filteredRsvps.map((rsvp) => (
-                  <div
-                    key={rsvp.id}
-                    className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-[#141721] transition-colors"
-                  >
-                    {/* Left: Guest details */}
-                    <div className="space-y-1.5 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-cinzel font-bold text-base text-zinc-100 tracking-wide">
-                          {rsvp.name}
-                        </h3>
-
-                        {/* Status Badge */}
-                        {rsvp.status === 'YES' && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
-                            YES • {rsvp.guestCount} {rsvp.guestCount > 1 ? 'people' : 'person'}
-                          </span>
-                        )}
-                        {rsvp.status === 'MAYBE' && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold">
-                            MAYBE • {rsvp.guestCount} {rsvp.guestCount > 1 ? 'people' : 'person'}
-                          </span>
-                        )}
-                        {rsvp.status === 'NO' && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-300 text-[10px] font-mono font-bold">
-                            DECLINED 💔
-                          </span>
-                        )}
-
-                        {/* Check-in status tag */}
-                        {rsvp.checkedIn && (
-                          <span className="px-2 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 text-sky-300 text-[10px] font-mono">
-                            ✓ ARRIVED
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Guest Message */}
-                      {rsvp.message && (
-                        <p className="text-xs text-zinc-300 font-sans italic bg-[#171a24] p-2.5 rounded-lg border border-[#232736] max-w-xl">
-                          "{rsvp.message}"
-                        </p>
-                      )}
-
-                      {/* Timestamp */}
-                      <div className="text-[10px] text-zinc-500 font-mono">
-                        Registered: {new Date(rsvp.createdAt).toLocaleString()}
-                      </div>
-                    </div>
-
-                    {/* Right: Actions */}
-                    <div className="flex items-center gap-2 self-start md:self-center">
-                      <button
-                        onClick={() => handleToggleCheckIn(rsvp)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-colors flex items-center gap-1 cursor-pointer ${
-                          rsvp.checkedIn
-                            ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                            : 'bg-[#1c202c] hover:bg-[#252b3c] text-zinc-400 border border-[#2d3345]'
-                        }`}
-                        title="Toggle venue check-in status"
-                      >
-                        <UserCheck className="w-3.5 h-3.5" />
-                        <span>{rsvp.checkedIn ? 'Checked In' : 'Check In'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleDeleteRsvp(rsvp.id, rsvp.name)}
-                        className="p-2 rounded-lg bg-[#1c202c] hover:bg-red-500/20 text-zinc-500 hover:text-red-400 border border-[#2d3345] transition-colors cursor-pointer"
-                        title="Delete RSVP"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 2. WISHLIST MANAGEMENT TAB */}
-      {adminTab === 'wishlist' && (
-        <div className="space-y-4">
-          <div className="bg-[#111319] border border-[#242836] p-4 rounded-2xl flex items-center justify-between">
-            <div>
-              <h3 className="font-cinzel font-bold text-zinc-100 text-sm">
-                Wishlist Items Live Inventory
-              </h3>
-              <p className="text-xs text-zinc-400">
-                Anonymous zero-knowledge reservations. You can reset or monitor claims.
-              </p>
-            </div>
-            <button
-              onClick={handleResetWishlist}
-              className="px-3 py-1.5 rounded-lg bg-red-500/15 hover:bg-red-500/25 border border-red-500/30 text-red-300 text-xs font-mono cursor-pointer transition-colors"
-            >
-              Reset All Claims
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-            {wishlist.map((item) => (
-              <div
-                key={item.id}
-                className="p-4 rounded-xl bg-[#111319] border border-[#242836] flex items-center justify-between gap-3"
+            <div className="flex items-center gap-2">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-[#240443] border border-pink-500/30 text-pink-200 text-xs focus:outline-none cursor-pointer"
               >
-                <div>
-                  <div className="font-cinzel font-bold text-sm text-zinc-100">
-                    {item.title}
-                  </div>
-                  <div className="text-[11px] text-zinc-400 font-mono mt-0.5">
-                    {item.price}
-                  </div>
-                </div>
+                <option value="ALL">Todos os status</option>
+                <option value="YES">Apenas SIM</option>
+                <option value="MAYBE">Apenas TALVEZ</option>
+                <option value="NO">Apenas NÃO</option>
+              </select>
 
-                <div className="text-right">
-                  {item.isReserved ? (
-                    <span className="px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-bold">
-                      RESERVED
-                    </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-bold">
-                      AVAILABLE
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Add Manual Guest Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md bg-[#111319] border border-amber-500/40 rounded-2xl p-6 shadow-2xl space-y-4"
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-[#242836]">
-              <h3 className="font-cinzel font-bold text-zinc-100 text-base">
-                Manual Guest Registration
-              </h3>
               <button
-                onClick={() => setShowAddModal(false)}
-                className="text-zinc-500 hover:text-zinc-300"
+                onClick={() => setIsAddingRsvp(!isAddingRsvp)}
+                className="px-3.5 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
               >
-                ✕
+                <Plus className="w-4 h-4" />
+                <span>Adicionar Convidado</span>
               </button>
             </div>
+          </div>
 
-            <form onSubmit={handleAddManualGuest} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-mono text-zinc-400 mb-1">
-                  Guest Name / Nickname
-                </label>
+          {/* Formulário de Adicionar Manual */}
+          {isAddingRsvp && (
+            <form onSubmit={handleManualAdd} className="p-4 rounded-2xl bg-[#240443] border border-pink-500/40 space-y-3">
+              <h4 className="text-xs font-arcade text-pink-300">ADICIONAR CONVIDADO MANUALMENTE</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <input
                   type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Nome do convidado ou família..."
                   required
-                  value={manualName}
-                  onChange={(e) => setManualName(e.target.value)}
-                  placeholder="Guest name or nickname"
-                  className="w-full px-3 py-2 rounded-lg bg-[#161822] border border-[#272c3d] text-sm text-zinc-100 focus:outline-none focus:border-amber-400"
+                  className="px-3 py-2 rounded-xl bg-[#1e0538] border border-pink-500/30 text-white text-xs"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={manualStatus}
-                    onChange={(e) => setManualStatus(e.target.value as any)}
-                    className="w-full px-3 py-2 rounded-lg bg-[#161822] border border-[#272c3d] text-sm text-zinc-100 focus:outline-none"
-                  >
-                    <option value="YES">YES (Attending)</option>
-                    <option value="MAYBE">MAYBE</option>
-                    <option value="NO">NO (Declined)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono text-zinc-400 mb-1">
-                    Headcount
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={manualGuests}
-                    onChange={(e) => setManualGuests(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg bg-[#161822] border border-[#272c3d] text-sm text-zinc-100 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono text-zinc-400 mb-1">
-                  Note / Message (Optional)
-                </label>
+                <select
+                  value={newStatus}
+                  onChange={(e: any) => setNewStatus(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-[#1e0538] border border-pink-500/30 text-pink-200 text-xs"
+                >
+                  <option value="YES">Confirmado (SIM)</option>
+                  <option value="MAYBE">Talvez</option>
+                  <option value="NO">Não vai</option>
+                </select>
                 <input
-                  type="text"
-                  value={manualMessage}
-                  onChange={(e) => setManualMessage(e.target.value)}
-                  placeholder="Direct WhatsApp message note..."
-                  className="w-full px-3 py-2 rounded-lg bg-[#161822] border border-[#272c3d] text-sm text-zinc-100 focus:outline-none"
+                  type="number"
+                  min="1"
+                  value={newGuestCount}
+                  onChange={(e) => setNewGuestCount(Number(e.target.value))}
+                  placeholder="Total de pessoas"
+                  className="px-3 py-2 rounded-xl bg-[#1e0538] border border-pink-500/30 text-white text-xs"
                 />
               </div>
-
-              <div className="pt-2 flex gap-2">
+              <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Observação ou recado..."
+                className="w-full px-3 py-2 rounded-xl bg-[#1e0538] border border-pink-500/30 text-white text-xs"
+              />
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 py-2 rounded-lg bg-[#1a1d28] text-zinc-400 text-xs font-medium hover:bg-[#232736]"
+                  onClick={() => setIsAddingRsvp(false)}
+                  className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2 rounded-lg bg-gold-gradient text-neutral-950 text-xs font-cinzel font-bold hover:brightness-110"
+                  className="px-4 py-1.5 rounded-lg bg-pink-600 text-white font-bold text-xs"
                 >
-                  Save Guest
+                  Salvar
                 </button>
               </div>
             </form>
-          </motion.div>
+          )}
+
+          {/* Tabela de Convidados */}
+          <div className="rounded-2xl border border-pink-500/20 bg-[#2e0854] overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-pink-100">
+                <thead className="bg-[#240443] text-pink-300 uppercase text-[10px] font-arcade border-b border-pink-500/20">
+                  <tr>
+                    <th className="p-3">Convidado / Família</th>
+                    <th className="p-3">Status</th>
+                    <th className="p-3">Pessoas</th>
+                    <th className="p-3">Recado</th>
+                    <th className="p-3">Check-in no Local</th>
+                    <th className="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-pink-500/10">
+                  {filteredRsvps.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-6 text-center text-pink-300/60">
+                        Nenhum convidado encontrado.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredRsvps.map((rsvp) => (
+                      <tr key={rsvp.id} className="hover:bg-pink-500/5 transition-colors">
+                        <td className="p-3 font-bold text-white">{rsvp.name}</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            rsvp.status === 'YES' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                            rsvp.status === 'MAYBE' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                            'bg-zinc-700 text-zinc-300'
+                          }`}>
+                            {rsvp.status === 'YES' ? 'Sim 🐾' : rsvp.status === 'MAYBE' ? 'Talvez' : 'Não'}
+                          </span>
+                        </td>
+                        <td className="p-3 font-semibold">{rsvp.guestCount || 1}</td>
+                        <td className="p-3 max-w-xs truncate italic text-zinc-300">{rsvp.message || '—'}</td>
+                        <td className="p-3">
+                          <button
+                            onClick={() => handleToggleCheckIn(rsvp)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
+                              rsvp.checkedIn
+                                ? 'bg-emerald-600 text-white'
+                                : 'bg-[#1e0538] text-pink-300 border border-pink-500/30 hover:border-pink-400'
+                            }`}
+                          >
+                            {rsvp.checkedIn ? '✓ Chegou' : 'Pendente'}
+                          </button>
+                        </td>
+                        <td className="p-3 text-right">
+                          <button
+                            onClick={() => handleDeleteRsvp(rsvp.id, rsvp.name)}
+                            className="p-1 rounded text-red-400 hover:text-red-300 hover:bg-red-950 cursor-pointer"
+                            title="Remover"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="space-y-5">
+          <form onSubmit={handleSaveConfig} className="p-5 rounded-2xl bg-[#2e0854] border border-pink-500/30 space-y-4 max-w-lg">
+            <h4 className="text-xs font-arcade text-pink-300">CONFIGURAÇÃO DA CHAVE PIX & WHATSAPP</h4>
+            
+            {configSaved && (
+              <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 text-xs">
+                Configurações salvas com sucesso!
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-pink-200 block">
+                Chave PIX (E-mail, CPF ou Telefone dos Pais):
+              </label>
+              <input
+                type="text"
+                value={pixKey}
+                onChange={(e) => setPixKey(e.target.value)}
+                placeholder="Ex: 34776327880"
+                className="w-full px-3 py-2.5 rounded-xl bg-[#240443] border border-pink-500/30 text-white text-xs font-mono"
+              />
+              <span className="text-[11px] text-pink-300/80 block">
+                Esta chave será exibida com botão de cópia na lista de presentes.
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-pink-200 block">
+                WhatsApp dos Pais (com DDD):
+              </label>
+              <input
+                type="text"
+                value={whatsAppPhone}
+                onChange={(e) => setWhatsAppPhone(e.target.value)}
+                placeholder="Ex: 5511999999999"
+                className="w-full px-3 py-2.5 rounded-xl bg-[#240443] border border-pink-500/30 text-white text-xs font-mono"
+              />
+              <span className="text-[11px] text-pink-300/80 block">
+                Deixe vazio para abrir o WhatsApp diretamente no seletor de contatos do convidado.
+              </span>
+            </div>
+
+            <button
+              type="submit"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-pink-500 text-white font-bold text-xs cursor-pointer shadow-md"
+            >
+              Salvar Configurações
+            </button>
+          </form>
+
+          {/* Zona de Limpeza Completa do Backend */}
+          <div className="p-5 rounded-2xl bg-rose-950/40 border border-rose-500/40 space-y-3 max-w-lg">
+            <div className="flex items-center gap-2">
+              <Trash2 className="w-4 h-4 text-rose-400" />
+              <h4 className="text-xs font-bold text-rose-200 uppercase tracking-wider">
+                Limpeza Completa do Backend (100% Limpo)
+              </h4>
+            </div>
+
+            <p className="text-xs text-rose-200/80 leading-relaxed">
+              Como este é um novo site para o aniversário de Ada & Gabi, esta opção apaga definitivamente quaisquer confirmações antigas (RSVP) e reservas de mimos no Firestore e no banco de dados local.
+            </p>
+
+            {clearSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-900/80 border border-emerald-400 text-emerald-100 text-xs">
+                Backend limpo com sucesso! Todos os registros foram resetados para 0.
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleClearEntireBackend}
+              disabled={isClearing}
+              className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-sm transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isClearing ? 'Limpando...' : 'Zerar Banco de Dados Agora (100% Limpo)'}</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -6,9 +6,7 @@ import { WishlistModal } from './components/WishlistModal';
 import { ComicPortraitModal } from './components/ComicPortraitModal';
 import { DadExtrasModal } from './components/DadExtrasModal';
 import { AdminDashboard } from './components/AdminDashboard';
-import { LanguageSelectionModal } from './components/LanguageSelectionModal';
 import { Footer } from './components/Footer';
-import { RsvpSubmission } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'invitation' | 'admin'>('invitation');
@@ -17,10 +15,8 @@ export default function App() {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isComicOpen, setIsComicOpen] = useState(false);
   const [isExtrasOpen, setIsExtrasOpen] = useState(false);
-  const [extrasInitialTab, setExtrasInitialTab] = useState<'jokes' | 'rules' | 'stats' | 'trophies' | 'comparison' | 'dress'>('jokes');
   const [adminToken, setAdminToken] = useState<string | null>(null);
 
-  // Check saved admin session on mount
   useEffect(() => {
     try {
       const savedToken = sessionStorage.getItem('alans_admin_token');
@@ -39,8 +35,7 @@ export default function App() {
     setIsWishlistOpen(true);
   };
 
-  const handleOpenExtras = (tab?: 'jokes' | 'rules' | 'stats' | 'trophies' | 'comparison' | 'dress') => {
-    if (tab) setExtrasInitialTab(tab);
+  const handleOpenExtras = () => {
     setIsExtrasOpen(true);
   };
 
@@ -50,36 +45,29 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1d] text-[#FFF7E6] font-sans selection:bg-[#F5B942]/40 selection:text-[#FFF7E6] flex flex-col justify-between">
-      {/* Language Selection Modal */}
-      <LanguageSelectionModal />
-
-      {/* Navigation Bar */}
+    <div className="min-h-screen bg-gradient-to-b from-pink-50/60 via-purple-50/30 to-sky-50/40 text-slate-800 font-sans selection:bg-[#EC4899] selection:text-white flex flex-col justify-between">
+      {/* Barra de Navegação */}
       <Navbar
         onOpenAdmin={handleOpenAdmin}
         isAdminLoggedIn={!!adminToken}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenComic={() => setIsComicOpen(true)}
-        onOpenExtras={() => handleOpenExtras('jokes')}
+        onOpenExtras={handleOpenExtras}
         onOpenRsvp={handleOpenRsvp}
         onOpenWishlist={handleOpenWishlist}
       />
 
-      {/* Main Content Area with top padding to clear fixed header */}
+      {/* Conteúdo Principal */}
       <main className="flex-1 flex flex-col justify-center pt-20 sm:pt-24 pb-8">
         {activeTab === 'invitation' ? (
-          <>
-            {/* Compact, non-long invitation screen for guests */}
-            <CompactInvitationCard
-              onOpenRsvp={handleOpenRsvp}
-              onOpenWishlist={handleOpenWishlist}
-              onOpenExtras={() => handleOpenExtras('jokes')}
-              onOpenComic={() => setIsComicOpen(true)}
-            />
-          </>
+          <CompactInvitationCard
+            onOpenRsvp={handleOpenRsvp}
+            onOpenWishlist={handleOpenWishlist}
+            onOpenExtras={handleOpenExtras}
+            onOpenComic={() => setIsComicOpen(true)}
+          />
         ) : (
-          /* Admin Dashboard (Password Protected: daddy2026) */
           <AdminDashboard
             onBackToInvite={() => {
               setActiveTab('invitation');
@@ -91,7 +79,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Footer */}
+      {/* Rodapé */}
       {activeTab === 'invitation' && (
         <Footer
           onOpenAdmin={handleOpenAdmin}
@@ -99,31 +87,27 @@ export default function App() {
         />
       )}
 
-      {/* 1. Modal de Confirmação de Presença (RSVP & Lista de Confirmados) */}
+      {/* 1. Modal de Confirmação de Presença (RSVP) */}
       <RsvpModal
         isOpen={isRsvpOpen}
         onClose={() => setIsRsvpOpen(false)}
         initialView={rsvpInitialView}
-        onRsvpSubmitted={(rsvp) => {
-          console.log('RSVP submitted:', rsvp);
-        }}
         onOpenAdmin={handleOpenAdmin}
       />
 
-      {/* 2. Modal da Lista de Presentes a Escolher (Wishlist) */}
+      {/* 2. Modal de Mimos & PIX (Wishlist) */}
       <WishlistModal
         isOpen={isWishlistOpen}
         onClose={() => setIsWishlistOpen(false)}
       />
 
-      {/* 3. Modal de Piadas, Regras, Estatísticas e Extras */}
+      {/* 3. Modal de Dicas & Guia da Festa */}
       <DadExtrasModal
         isOpen={isExtrasOpen}
         onClose={() => setIsExtrasOpen(false)}
-        defaultTab={extrasInitialTab}
       />
 
-      {/* 4. Alan Comic Character Portrait Modal */}
+      {/* 4. Modal Conheça as Aniversariantes (Skye & Everest) */}
       <ComicPortraitModal
         isOpen={isComicOpen}
         onClose={() => setIsComicOpen(false)}

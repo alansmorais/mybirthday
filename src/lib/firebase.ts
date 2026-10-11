@@ -165,6 +165,17 @@ export async function deleteRsvpFromFirestore(id: string): Promise<void> {
   }
 }
 
+export async function clearAllRsvpsFromFirestore(): Promise<void> {
+  try {
+    const snapshot = await getDocs(collection(db, RSVPS_PATH));
+    for (const d of snapshot.docs) {
+      await deleteDoc(doc(db, RSVPS_PATH, d.id));
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, RSVPS_PATH);
+  }
+}
+
 // Wishlist Claims Firestore Functions
 const WISHLIST_PATH = 'wishlistClaims';
 
@@ -195,6 +206,17 @@ export async function unclaimWishlistItemInFirestore(itemId: string): Promise<vo
     await deleteDoc(docRef);
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${WISHLIST_PATH}/${itemId}`);
+  }
+}
+
+export async function clearAllWishlistClaimsFromFirestore(): Promise<void> {
+  try {
+    const snapshot = await getDocs(collection(db, WISHLIST_PATH));
+    for (const d of snapshot.docs) {
+      await deleteDoc(doc(db, WISHLIST_PATH, d.id));
+    }
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, WISHLIST_PATH);
   }
 }
 

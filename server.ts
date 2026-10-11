@@ -56,82 +56,82 @@ interface DatabaseSchema {
 
 const DEFAULT_WISHLIST: WishlistRecord[] = [
   {
-    id: 'item-1',
-    title: 'JACK REACHER / LEE CHILD',
-    subtitle: 'Especially Killing Floor or any gripping Reacher paperback.',
-    description: 'Paperback preferred for comfortable reading during quiet hours.',
-    price: 'Approx. 30–60 zł • Paperback preferred',
-    category: 'Literature',
-    iconName: 'BookOpen',
-    isReserved: false
-  },
-  {
-    id: 'item-2',
-    title: 'GUITAR TUNER',
-    subtitle: 'Clip-on acoustic/electric chromatic tuner (e.g. Snark, TC Electronic, Boss).',
-    description: 'Keep the riffs in tune without disturbing the neighbours.',
-    price: 'Approx. 30–100 zł',
-    category: 'Music Gear',
-    iconName: 'Music',
-    isReserved: false
-  },
-  {
-    id: 'item-3',
-    title: 'EDC / FOLDING KNIFE',
-    subtitle: 'Classy pocket knife (Opinel No. 8, Victorinox Swiss Army, or sleek EDC folder).',
-    description: 'Essential gentleman everyday carry for opening packages and artisanal cheese.',
-    price: 'Approx. 50–150 zł',
-    category: 'EDC & Utility',
-    iconName: 'ShieldAlert',
-    isReserved: false
-  },
-  {
-    id: 'item-4',
-    title: 'KNIFE SHARPENING GEAR',
-    subtitle: 'Whetstone (1000/6000 grit), leather strop, or ceramic honing rod.',
-    description: 'For that razor-sharp satisfying edge maintenance.',
-    price: 'Approx. 30–150 zł',
-    category: 'Craft & Maintenance',
+    id: 'item-pix-livre',
+    title: 'CONTRIBUIÇÃO PIX (VALOR LIVRE)',
+    subtitle: 'Ajude os papais a comprarem o que as gêmeas mais precisam para o inverno.',
+    description: 'A melhor opção! Como o inverno está chegando e espaço na mala é limitado, o PIX nos permite comprar roupinhas térmicas, casacos e itens no tamanho exato delas.',
+    price: 'Qualquer valor com carinho • Chave PIX',
+    category: 'PIX & Inverno',
     iconName: 'Sparkles',
     isReserved: false
   },
   {
-    id: 'item-5',
-    title: 'PUZZLES & BRAIN TEASERS',
-    subtitle: 'Cast metal Hanayama puzzle, wooden Japanese secret puzzle box, or mechanical teaser.',
-    description: 'Tactile mental gymnastics while pretending to listen on Zoom calls.',
-    price: 'Approx. 30–150 zł',
-    category: 'Puzzles & Novelties',
+    id: 'item-pix-patrulha',
+    title: 'PIX MIMINHO PATRULHA CANINA',
+    subtitle: 'Para um presentinho especial da Skye & Everest que elas escolherem!',
+    description: 'Contribuição para brinquedos e livrinhos temáticos que elas mesmas possam escolher.',
+    price: 'R$ 30, R$ 50 ou quanto desejar • PIX',
+    category: 'PIX & Inverno',
+    iconName: 'Heart',
+    isReserved: false
+  },
+  {
+    id: 'item-roupas-inverno',
+    title: 'ROUPINHAS DE INVERNO INFANTIS',
+    subtitle: 'O inverno está chegando! Casacos, meias quentinhas e peças térmicas.',
+    description: 'Conjuntinhos quentinhos, blusas de frio, pijamas felpudos ou jaquetinhas infantis.',
+    price: 'Tamanho infantil confortável',
+    category: 'Inverno & Conforto',
+    iconName: 'Shirt',
+    isReserved: false
+  },
+  {
+    id: 'item-livros-historinhas',
+    title: 'LIVRINHOS DE HISTÓRIAS & ATIVIDADES',
+    subtitle: 'Historinhas para antes de dormir, livros de colorir e adesivos.',
+    description: 'Leves e perfeitos para a imaginação das meninas. Elas amam historinhas ilustradas e livrinhos com adesivos!',
+    price: 'Item compacto • Fácil de levar',
+    category: 'Leitura & Criatividade',
+    iconName: 'BookOpen',
+    isReserved: false
+  },
+  {
+    id: 'item-acessorios-cabelo',
+    title: 'LAÇOS & ACESSÓRIOS DE CABELO',
+    subtitle: 'Laços cor-de-rosa, presilhas e tiaras fofas para as duas!',
+    description: 'Pequenos, fofos e muito úteis no dia a dia das gêmeas.',
+    price: 'Lembrancinha compacta',
+    category: 'Mimos & Acessórios',
+    iconName: 'Sparkles',
+    isReserved: false
+  },
+  {
+    id: 'item-lego-jogos',
+    title: 'MINI JOGOS / QUEBRA-CABEÇA INFANTIL',
+    subtitle: 'Jogos educativos compactos ou quebra-cabeças infantis.',
+    description: 'Quebra-cabeças educativos, jogos de memória ou bloquinhos de montar compactos.',
+    price: 'Item pequeno e educativo',
+    category: 'Brincadeiras & Aprendizado',
     iconName: 'Puzzle',
     isReserved: false
   },
   {
-    id: 'item-6',
-    title: 'DISCREET NOVELTY / ADULT ACCESSORIES',
-    subtitle: 'Tasteful, cheeky, adult-appropriate intrigue. Surprise Daddy responsibly.',
-    description: 'Discretion guaranteed. No questions asked.',
-    price: 'Approx. 30–150 zł • Discretion guaranteed',
-    category: 'Adult Cheeky',
-    iconName: 'Flame',
+    id: 'item-calcados-inverno',
+    title: 'MEIAS TÉRMICAS / PANTUFAS (TAM. 25/26)',
+    subtitle: 'Para manter os pezinhos aquecidos nos dias mais frios.',
+    description: 'Meias antiderrapantes, meinhas térmicas ou pantufinhas macias e quentes.',
+    price: 'Tamanho calçado 25/26',
+    category: 'Inverno & Conforto',
+    iconName: 'Shield',
     isReserved: false
   },
   {
-    id: 'item-7',
-    title: 'BOOK — SURPRISE ME',
-    subtitle: 'History, biography, philosophy, espionage, or grim darkly funny fiction.',
-    description: 'Feed Daddy’s voracious curiosity with a thoughtful, unexpected read.',
-    price: 'Approx. 30–100 zł',
-    category: 'Literature',
-    iconName: 'BookMarked',
-    isReserved: false
-  },
-  {
-    id: 'item-8',
-    title: 'SURPRISE DADDY',
-    subtitle: 'Whisky miniature, fine ground coffee beans, or something completely absurd.',
-    description: 'Let your creativity run wild with something memorable.',
-    price: 'Any amount',
-    category: 'Wildcard',
+    id: 'item-lembranca-afeto',
+    title: 'CARTINHA COM DESENHO OU MENSAGEM',
+    subtitle: 'O carinho e a presença de vocês é o nosso maior presente!',
+    description: 'Um abraço apertado e uma mensagem cheia de amor para guardarmos de recordação.',
+    price: 'Inestimável • Muito amor',
+    category: 'Carinho & Afeto',
     iconName: 'Gift',
     isReserved: false
   }
@@ -229,7 +229,7 @@ app.post('/api/rsvp', (req: Request, res: Response) => {
 
   return res.status(201).json({
     success: true,
-    message: 'Protocol successfully registered with Daddy!',
+    message: 'Presença confirmada com sucesso para o aniversário de Ada e Gabi!',
     rsvp: newRsvp
   });
 });
@@ -338,11 +338,11 @@ app.post('/api/admin/login', (req: Request, res: Response) => {
   if (isAuthorizedAdmin(password)) {
     return res.json({
       success: true,
-      message: 'Access granted to Daddy\'s executive vault',
+      message: 'Acesso liberado ao painel dos pais',
       token: password.trim() // Safe session token representation for demo
     });
   }
-  return res.status(401).json({ error: 'Incorrect backend admin password' });
+  return res.status(401).json({ error: 'Senha de administrador incorreta' });
 });
 
 // 6. Admin Get All Registrations & Full Stats
@@ -437,6 +437,15 @@ app.post('/api/admin/wishlist/reset', requireAdmin, (req: Request, res: Response
   return res.json({ success: true, wishlist: db.wishlist });
 });
 
+// 10b. Admin Clear All RSVPs & Reset Wishlist (100% clean)
+app.post('/api/admin/clear-all', requireAdmin, (req: Request, res: Response) => {
+  const db = getDb();
+  db.rsvps = [];
+  db.wishlist = DEFAULT_WISHLIST.map(item => ({ ...item, isReserved: false }));
+  saveDb(db);
+  return res.json({ success: true, message: 'Backend completamente limpo (100%)' });
+});
+
 // 11. Admin Export to CSV
 app.get('/api/admin/export/csv', requireAdmin, (req: Request, res: Response) => {
   const db = getDb();
@@ -453,7 +462,7 @@ app.get('/api/admin/export/csv', requireAdmin, (req: Request, res: Response) => 
 
   const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
   res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="alans-30plus-rsvps.csv"');
+  res.setHeader('Content-Disposition', 'attachment; filename="ada-e-gabi-rsvps.csv"');
   return res.send(csvContent);
 });
 
@@ -475,8 +484,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🎂 Alan's Birthday Portal running on http://0.0.0.0:${PORT}`);
-    console.log(`🔐 Admin Password: ${ADMIN_PASSWORD}`);
+    console.log(`🐾 Convite Ada & Gabi rodando em http://0.0.0.0:${PORT}`);
   });
 }
 

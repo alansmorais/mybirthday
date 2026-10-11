@@ -2,7 +2,7 @@
   "entities": {
     "rsvp": {
       "title": "RSVP Submission",
-      "description": "Guest RSVP response for Alan's 30+ Birthday Celebration",
+      "description": "Guest RSVP response for Twins Ada and Gabi Birthday Celebration",
       "type": "object",
       "properties": {
         "id": {
@@ -24,7 +24,7 @@
         },
         "message": {
           "type": "string",
-          "description": "Optional toast, joke, or note for Alan"
+          "description": "Optional toast, congratulation, or note for Ada & Gabi"
         },
         "checkedIn": {
           "type": "boolean",

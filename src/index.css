@@ -2,8 +2,6 @@
 
 @layer base {
   :root {
-    --font-serif: 'Cinzel', serif;
-    --font-italic-serif: 'Playfair Display', serif;
     --font-sans: 'Outfit', 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'Space Grotesk', monospace;
     --font-arcade: 'Bungee', cursive;
@@ -11,18 +9,10 @@
 
   body {
     font-family: var(--font-sans);
-    background-color: #0d1527;
-    color: #FFF7E6;
+    background-color: #F8FAFC;
+    color: #1E293B;
     overflow-x: hidden;
   }
-}
-
-.font-cinzel {
-  font-family: 'Cinzel', serif;
-}
-
-.font-playfair {
-  font-family: 'Playfair Display', serif;
 }
 
 .font-arcade {
@@ -33,77 +23,53 @@
   font-family: 'Space Grotesk', sans-serif;
 }
 
-/* Vivid Gradients */
-.text-retro-gold {
-  background: linear-gradient(135deg, #FFF08A 0%, #F5B942 50%, #FF8A3D 100%);
+/* Paw Patrol Girls Vibrant Gradients (Skye Pink, Everest Teal & Purple) */
+.text-paw-pink {
+  background: linear-gradient(135deg, #FFB6D9 0%, #FF2A85 50%, #D946EF 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.text-retro-cyan {
-  background: linear-gradient(135deg, #A5F3FC 0%, #38BDF8 50%, #0284C7 100%);
+.text-paw-teal {
+  background: linear-gradient(135deg, #A5F3FC 0%, #06B6D4 50%, #0284C7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.bg-retro-gold {
-  background: linear-gradient(135deg, #FFF08A 0%, #F5B942 50%, #FF8A3D 100%);
+.bg-paw-pink {
+  background: linear-gradient(135deg, #FF2A85 0%, #E11D48 100%);
 }
 
-.bg-retro-cyan {
-  background: linear-gradient(135deg, #38BDF8 0%, #0284C7 100%);
+.bg-paw-card {
+  background-color: #3b0764;
+  border-color: #701a75;
 }
 
-.bg-retro-card {
-  background-color: #111c35;
-  border-color: #1e2e54;
+/* Polka dots and Paw Patrol playful background */
+.bg-paw-dots {
+  background-image: radial-gradient(rgba(244, 114, 182, 0.22) 2px, transparent 2px);
+  background-size: 20px 20px;
 }
 
-/* Halftone / Retro pattern */
-.bg-retro-dots {
-  background-image: radial-gradient(rgba(245, 185, 66, 0.12) 1.5px, transparent 1.5px);
-  background-size: 16px 16px;
+.bg-paw-grid {
+  background-image: linear-gradient(to right, rgba(236, 72, 153, 0.08) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
-.bg-retro-grid {
-  background-image: linear-gradient(to right, rgba(56, 189, 248, 0.05) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(56, 189, 248, 0.05) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* Comic / Sticker Pop */
+/* Badge pop */
 .sticker-badge {
-  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.6);
+  box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sticker-badge:hover {
   transform: translateY(-2px) rotate(1deg);
-  box-shadow: 4px 5px 0px rgba(0, 0, 0, 0.7);
+  box-shadow: 4px 5px 0px rgba(0, 0, 0, 0.6);
 }
 
-.retro-box-shadow {
-  box-shadow: 4px 4px 0px #0b1120, 4px 4px 0px 1px #F5B942;
-}
-
-.retro-blue-shadow {
-  box-shadow: 4px 4px 0px #080d1a, 4px 4px 0px 1px #38BDF8;
-}
-
-/* Marquee / Ticker animations */
-@keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
-}
-
-.animate-marquee {
-  display: flex;
-  width: max-content;
-  animation: marquee 35s linear infinite;
-}
-
-.animate-marquee:hover {
-  animation-play-state: paused;
+.paw-box-shadow {
+  box-shadow: 4px 4px 0px #1e0538, 4px 4px 0px 1px #EC4899;
 }
 
 /* Custom scrollbar */
@@ -112,15 +78,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d1527;
+  background: #2e0854;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2e54;
+  background: #86198f;
   border-radius: 4px;
-  border: 1px solid #283e70;
+  border: 1px solid #c026d3;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #F5B942;
+  background: #ec4899;
 }
