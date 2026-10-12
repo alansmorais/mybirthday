@@ -4,6 +4,7 @@ import {
   collection,
   doc,
   setDoc,
+  getDoc,
   getDocs,
   onSnapshot,
   updateDoc,
@@ -239,4 +240,147 @@ export function subscribeToWishlistClaims(callback: (claims: Record<string, { re
     handleFirestoreError(error, OperationType.LIST, WISHLIST_PATH);
     return () => {};
   }
+}
+
+// -------------------------------------------------------------
+// Twins Real Photos (Ada & Gabi) Shared Firestore Sync
+// -------------------------------------------------------------
+export const TWINS_PHOTOS_PATH = 'twinsPhotos';
+export const TWINS_PHOTOS_DOC_ID = 'current';
+
+export interface TwinsPhotosData {
+  photoAda: string | null;
+  photoGabi: string | null;
+  photoJoint: string | null;
+  photoViewMode?: 'individual' | 'joint';
+  updatedAt?: string;
+}
+
+export async function saveTwinsPhotosToFirestore(data: Partial<TwinsPhotosData>): Promise<void> {
+  const docRef = doc(db, TWINS_PHOTOS_PATH, TWINS_PHOTOS_DOC_ID);
+  try {
+    const existing = await getTwinsPhotosFromFirestore();
+    const payload: TwinsPhotosData = {
+      photoAda: data.photoAda !== undefined ? data.photoAda : (existing?.photoAda || null),
+      photoGabi: data.photoGabi !== undefined ? data.photoGabi : (existing?.photoGabi || null),
+      photoJoint: data.photoJoint !== undefined ? data.photoJoint : (existing?.photoJoint || null),
+      photoViewMode: data.photoViewMode || existing?.photoViewMode || 'individual',
+      updatedAt: new Date().toISOString()
+    };
+    await setDoc(docRef, payload, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${TWINS_PHOTOS_PATH}/${TWINS_PHOTOS_DOC_ID}`);
+  }
+}
+
+export async function getTwinsPhotosFromFirestore(): Promise<TwinsPhotosData | null> {
+  try {
+    const docRef = doc(db, TWINS_PHOTOS_PATH, TWINS_PHOTOS_DOC_ID);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data() as TwinsPhotosData;
+    }
+    return null;
+  } catch (error) {
+    console.warn('Error reading twins photos from Firestore:', error);
+    return null;
+  }
+}
+
+export function subscribeToTwinsPhotos(callback: (photos: TwinsPhotosData | null) => void): () => void {
+  try {
+    const docRef = doc(db, TWINS_PHOTOS_PATH, TWINS_PHOTOS_DOC_ID);
+    return onSnapshot(docRef, (snap) => {
+      if (snap.exists()) {
+        callback(snap.data() as TwinsPhotosData);
+      } else {
+        callback(null);
+      }
+    }, (error) => {
+      console.warn('Photos snapshot subscription notice:', error);
+      callback(null);
+    });
+  } catch (error) {
+    console.warn('Photos subscription setup notice:', error);
+    return () => {};
+  }
+}
+
+/**
+ * Optimizes/compresses high-res user photos from smartphones or cameras
+ * into a lightweight, high-fidelity WebP/JPEG data URL (~100-200KB).
+ * This ensures the girls' authentic features remain crisp and natural,
+ * while preventing Firestore document size issues and saving bandwidth on mobile.
+ */
+export async function compressImageFile(file: File, maxDimension: number = 1000, quality: number = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    // If not an image or SVG, read standard
+    if (!file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      let { width, height } = img;
+
+      // Scale down proportionally if larger than maxDimension
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        // Fallback to direct read
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Try image/webp first if supported, fallback to image/jpeg
+      try {
+        const webpData = canvas.toDataURL('image/webp', quality);
+        if (webpData.startsWith('data:image/webp')) {
+          resolve(webpData);
+          return;
+        }
+      } catch {}
+
+      const jpegData = canvas.toDataURL('image/jpeg', quality);
+      resolve(jpegData);
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      // Fallback to FileReader
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    };
+
+    img.src = objectUrl;
+  });
 }

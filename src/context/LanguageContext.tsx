@@ -15,9 +15,9 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 // Dicionário em Português do Brasil - Tema Patrulha Canina - Aniversário das Gêmeas Ada e Gabi
 const TRANSLATIONS: Record<string, Record<string, any>> = {
   common: {
-    date: "Data a combinar",
-    time: "Horário a combinar",
-    location: "Casa da Vó Angelina",
+    date: "Sábado, 14",
+    time: "A partir do meio-dia",
+    location: "Casa da Bisavó",
     addCalendar: "SALVAR NA AGENDA",
     copied: "COPIADO COM SUCESSO!",
     copyPin: "COPIAR ENDEREÇO",
@@ -93,7 +93,7 @@ const TRANSLATIONS: Record<string, Record<string, any>> = {
     rights: "Todos os direitos reservados à diversão!",
     reminder: "GUARDE ESSA DATA",
     seeYou: "ESPERAMOS POR VOCÊ!",
-    quote: "Casa da Vó Angelina • Data a combinar • Venha comemorar com a Patrulha Canina!",
+    quote: "Casa da Bisavó • Sábado, 14 • A partir do meio-dia • Venha comemorar com a Patrulha Canina!",
     tagline: "ADA E GABI 💕",
     subTagline: "Patrulha Canina pronta para a diversão!",
     comicLink: "Fotos das Meninas",

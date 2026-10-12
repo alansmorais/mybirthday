@@ -63,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </div>
             <p className="text-[10px] text-slate-500 font-medium">
-              Casa da Vó Angelina • Data a combinar
+              Casa da Bisavó • Sábado, 14 • A partir do meio-dia
             </p>
           </div>
         </div>

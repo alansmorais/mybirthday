@@ -16,7 +16,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
         </div>
 
         <p className="text-xs text-slate-500 font-sans max-w-xs mx-auto leading-relaxed">
-          Local: Casa da Vó Angelina • Data e horário a combinar
+          Local: Casa da Bisavó • Sábado, 14 • A partir do meio-dia
         </p>
 
         <div className="flex items-center justify-center gap-2 text-slate-300">

@@ -67,9 +67,9 @@ export const RsvpSection: React.FC<RsvpSectionProps> = ({
       `✨ *Status:* ${statusText}\n` +
       `👥 *Total de Pessoas:* ${rsvp.guestCount}\n` +
       (rsvp.message ? `💬 *Mensagem para as aniversariantes:* "${rsvp.message}"\n\n` : '\n') +
-      `📍 *Local:* Casa da Vó Angelina\n` +
-      `📅 *Data:* A combinar\n` +
-      `⏰ *Horário:* A combinar`;
+      `📍 *Local:* Casa da Bisavó\n` +
+      `📅 *Data:* Sábado, 14\n` +
+      `⏰ *Horário:* A partir do meio-dia`;
 
     const customPhone = typeof window !== 'undefined' ? localStorage.getItem('twins_whatsapp_phone') : null;
     if (customPhone && customPhone.trim()) {

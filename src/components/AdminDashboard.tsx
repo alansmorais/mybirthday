@@ -18,7 +18,9 @@ import {
   PhoneCall,
   MessageCircle,
   Copy,
-  Check
+  Check,
+  Camera,
+  Loader2
 } from 'lucide-react';
 import { RsvpSubmission, WishlistItem, AdminStats } from '../types';
 import { INITIAL_WISHLIST } from '../data/initialWishlist';
@@ -28,7 +30,10 @@ import {
   deleteRsvpFromFirestore,
   saveRsvpToFirestore,
   clearAllRsvpsFromFirestore,
-  clearAllWishlistClaimsFromFirestore
+  clearAllWishlistClaimsFromFirestore,
+  saveTwinsPhotosToFirestore,
+  subscribeToTwinsPhotos,
+  compressImageFile
 } from '../lib/firebase';
 
 const GITHUB_PAGES_ADMIN_PASSWORD = 'Dupa1989%';
@@ -69,6 +74,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [whatsAppPhone, setWhatsAppPhone] = useState('');
   const [configSaved, setConfigSaved] = useState(false);
 
+  // Fotografias Reais das Gêmeas no Painel Admin (Sincronização em Nuvem)
+  const [adminPhotoAda, setAdminPhotoAda] = useState<string | null>(null);
+  const [adminPhotoGabi, setAdminPhotoGabi] = useState<string | null>(null);
+  const [adminPhotoJoint, setAdminPhotoJoint] = useState<string | null>(null);
+  const [isUploadingPhotoTarget, setIsUploadingPhotoTarget] = useState<'ada' | 'gabi' | 'joint' | null>(null);
+  const [photoSavedToast, setPhotoSavedToast] = useState(false);
+
   useEffect(() => {
     try {
       const savedPix = localStorage.getItem('twins_pix_key');
@@ -76,7 +88,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const savedPhone = localStorage.getItem('twins_whatsapp_phone');
       if (savedPhone) setWhatsAppPhone(savedPhone);
     } catch {}
+
+    const unsubPhotos = subscribeToTwinsPhotos((cloudData) => {
+      if (cloudData) {
+        setAdminPhotoAda(cloudData.photoAda || null);
+        setAdminPhotoGabi(cloudData.photoGabi || null);
+        setAdminPhotoJoint(cloudData.photoJoint || null);
+      }
+    });
+
+    return () => unsubPhotos();
   }, []);
+
+  const handleAdminPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'ada' | 'gabi' | 'joint') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhotoTarget(target);
+    try {
+      const optimized = await compressImageFile(file, 1000, 0.82);
+      await saveTwinsPhotosToFirestore({
+        [target === 'ada' ? 'photoAda' : target === 'gabi' ? 'photoGabi' : 'photoJoint']: optimized
+      });
+      try {
+        await fetch('/api/photos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            [target === 'ada' ? 'photoAda' : target === 'gabi' ? 'photoGabi' : 'photoJoint']: optimized
+          })
+        });
+      } catch {}
+      setPhotoSavedToast(true);
+      setTimeout(() => setPhotoSavedToast(false), 3000);
+    } catch (err) {
+      console.error('Erro ao salvar foto no painel admin:', err);
+    } finally {
+      setIsUploadingPhotoTarget(null);
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleAdminPhotoRemove = async (target: 'ada' | 'gabi' | 'joint') => {
+    try {
+      await saveTwinsPhotosToFirestore({
+        [target === 'ada' ? 'photoAda' : target === 'gabi' ? 'photoGabi' : 'photoJoint']: null
+      });
+      try {
+        await fetch('/api/photos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            [target === 'ada' ? 'photoAda' : target === 'gabi' ? 'photoGabi' : 'photoJoint']: null
+          })
+        });
+      } catch {}
+    } catch (err) {
+      console.error('Erro ao remover foto no painel:', err);
+    }
+  };
 
   const calculateStats = (rsvpList: RsvpSubmission[], wishList: WishlistItem[]) => {
     const totalSubmissions = rsvpList.length;
@@ -617,6 +687,132 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               Salvar Configurações
             </button>
           </form>
+
+          {/* FOTOGRAFIAS REAIS DAS GÊMEAS (SINCRONIZADAS NA NUVEM) */}
+          <div className="p-5 rounded-2xl bg-[#2e0854] border border-purple-500/30 space-y-4 max-w-lg">
+            <div className="flex items-center gap-2">
+              <Camera className="w-4 h-4 text-pink-400" />
+              <h4 className="text-xs font-arcade text-pink-300">FOTOGRAFIAS REAIS DE ADA & GABI</h4>
+            </div>
+
+            <p className="text-xs text-purple-200/80 leading-relaxed">
+              As fotografias enviadas aqui são salvas no banco de dados na nuvem (Firestore) e aparecem automaticamente no convite digital para todos os convidados (no celular, WhatsApp e site publicado).
+            </p>
+
+            {photoSavedToast && (
+              <div className="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500 text-emerald-200 text-xs flex items-center gap-2">
+                <Check className="w-3.5 h-3.5" />
+                <span>Foto salva na nuvem com sucesso! Sincronizada para todos os dispositivos.</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {/* Foto da Ada */}
+              <div className="p-3 rounded-xl bg-[#240443] border border-pink-500/20 text-center flex flex-col items-center">
+                <span className="text-[11px] font-bold text-pink-300 mb-2">Foto da Ada (Skye)</span>
+                <div className="w-20 h-24 rounded-lg bg-black/40 overflow-hidden flex items-center justify-center mb-2 border border-pink-500/30">
+                  {isUploadingPhotoTarget === 'ada' ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-pink-400" />
+                  ) : adminPhotoAda ? (
+                    <img src={adminPhotoAda} alt="Ada" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[9px] text-purple-300/60">Sem foto</span>
+                  )}
+                </div>
+                <div className="flex gap-1.5 w-full justify-center">
+                  <label className="px-2 py-1 rounded bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-bold cursor-pointer">
+                    {adminPhotoAda ? 'Trocar' : 'Enviar'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleAdminPhotoUpload(e, 'ada')}
+                    />
+                  </label>
+                  {adminPhotoAda && (
+                    <button
+                      type="button"
+                      onClick={() => handleAdminPhotoRemove('ada')}
+                      className="p-1 rounded bg-red-900/60 hover:bg-red-800 text-red-200 text-[10px] cursor-pointer"
+                      title="Remover"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Foto da Gabi */}
+              <div className="p-3 rounded-xl bg-[#240443] border border-purple-500/20 text-center flex flex-col items-center">
+                <span className="text-[11px] font-bold text-purple-300 mb-2">Foto da Gabi (Everest)</span>
+                <div className="w-20 h-24 rounded-lg bg-black/40 overflow-hidden flex items-center justify-center mb-2 border border-purple-500/30">
+                  {isUploadingPhotoTarget === 'gabi' ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-purple-400" />
+                  ) : adminPhotoGabi ? (
+                    <img src={adminPhotoGabi} alt="Gabi" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-[9px] text-purple-300/60">Sem foto</span>
+                  )}
+                </div>
+                <div className="flex gap-1.5 w-full justify-center">
+                  <label className="px-2 py-1 rounded bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-bold cursor-pointer">
+                    {adminPhotoGabi ? 'Trocar' : 'Enviar'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handleAdminPhotoUpload(e, 'gabi')}
+                    />
+                  </label>
+                  {adminPhotoGabi && (
+                    <button
+                      type="button"
+                      onClick={() => handleAdminPhotoRemove('gabi')}
+                      className="p-1 rounded bg-red-900/60 hover:bg-red-800 text-red-200 text-[10px] cursor-pointer"
+                      title="Remover"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Foto das Gêmeas Juntas */}
+            <div className="p-3 rounded-xl bg-[#240443] border border-sky-500/20 text-center flex flex-col items-center">
+              <span className="text-[11px] font-bold text-sky-300 mb-2">Foto das Duas Juntas (Opcional)</span>
+              <div className="w-36 h-20 rounded-lg bg-black/40 overflow-hidden flex items-center justify-center mb-2 border border-sky-500/30">
+                {isUploadingPhotoTarget === 'joint' ? (
+                  <Loader2 className="w-5 h-5 animate-spin text-sky-400" />
+                ) : adminPhotoJoint ? (
+                  <img src={adminPhotoJoint} alt="Ada e Gabi" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[9px] text-purple-300/60">Sem foto conjunta</span>
+                )}
+              </div>
+              <div className="flex gap-1.5 justify-center">
+                <label className="px-2.5 py-1 rounded bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold cursor-pointer">
+                  {adminPhotoJoint ? 'Trocar Foto Juntas' : 'Enviar Foto Juntas'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleAdminPhotoUpload(e, 'joint')}
+                  />
+                </label>
+                {adminPhotoJoint && (
+                  <button
+                    type="button"
+                    onClick={() => handleAdminPhotoRemove('joint')}
+                    className="p-1 rounded bg-red-900/60 hover:bg-red-800 text-red-200 text-[10px] cursor-pointer"
+                    title="Remover"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Zona de Limpeza Completa do Backend */}
           <div className="p-5 rounded-2xl bg-rose-950/40 border border-rose-500/40 space-y-3 max-w-lg">

@@ -45,6 +45,12 @@ service cloud.firestore {
       allow delete: if true;
     }
 
+    // Twins photos collection (Ada & Gabi real photos shared across all devices)
+    match /twinsPhotos/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
     // Connection test document
     match /test/{docId} {
       allow read: if true;

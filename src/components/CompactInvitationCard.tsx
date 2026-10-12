@@ -14,9 +14,15 @@ import {
   Trash2,
   MessageCircle,
   Sparkles,
-  Info
+  Info,
+  Loader2
 } from 'lucide-react';
-import { subscribeToRsvps } from '../lib/firebase';
+import {
+  subscribeToRsvps,
+  subscribeToTwinsPhotos,
+  saveTwinsPhotosToFirestore,
+  compressImageFile
+} from '../lib/firebase';
 
 interface CompactInvitationCardProps {
   onOpenRsvp: (initialView?: 'form' | 'roster') => void;
@@ -41,6 +47,8 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
   const [photoGabi, setPhotoGabi] = useState<string | null>(null);
   const [photoJoint, setPhotoJoint] = useState<string | null>(null);
   const [photoViewMode, setPhotoViewMode] = useState<'individual' | 'joint'>('individual');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<'ada' | 'gabi' | 'joint' | null>(null);
+  const [hasCloudPhotos, setHasCloudPhotos] = useState(false);
 
   const fileInputAdaRef = useRef<HTMLInputElement>(null);
   const fileInputGabiRef = useRef<HTMLInputElement>(null);
@@ -54,13 +62,15 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
   // Chave PIX fornecida pelos organizadores — estritamente 34776327880
   const PIX_KEY = '34776327880';
 
-  // Informações confirmadas do evento (sem dados inventados)
-  const EVENT_LOCATION = 'Casa da Vó Angelina';
-  const EVENT_DATE = 'A combinar';
-  const EVENT_TIME = 'A combinar';
+  // Informações confirmadas do evento (Casa da Bisavó • Sábado, 14 • Meio-dia)
+  const EVENT_LOCATION = 'Casa da Bisavó';
+  const EVENT_DATE = 'Sábado, 14';
+  const EVENT_TIME = 'A partir do meio-dia';
 
-  // Carregar fotos reais salvas no localStorage (se o usuário carregou localmente)
+  // SINCRONIZAÇÃO EM TEMPO REAL: Fotos compartilhadas na nuvem (Firestore + Backend)
+  // Permite que qualquer pessoa ao abrir o site publicado veja as fotos reais
   useEffect(() => {
+    // 1. Carregamento imediato do cache local (para evitar piscadas)
     try {
       const savedAda = localStorage.getItem('twin_photo_ada');
       if (savedAda) setPhotoAda(savedAda);
@@ -74,8 +84,58 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
       const savedMode = localStorage.getItem('twins_photo_mode') as 'individual' | 'joint';
       if (savedMode) setPhotoViewMode(savedMode);
     } catch (e) {
-      console.warn('Erro ao ler fotos:', e);
+      console.warn('Erro ao ler cache local de fotos:', e);
     }
+
+    // 2. Inscrição em tempo real com Firestore (compartilhado para todos os convidados e dispositivos)
+    const unsubPhotos = subscribeToTwinsPhotos((cloudData) => {
+      if (cloudData) {
+        setHasCloudPhotos(true);
+        if (cloudData.photoAda !== undefined) {
+          setPhotoAda(cloudData.photoAda);
+          try {
+            if (cloudData.photoAda) localStorage.setItem('twin_photo_ada', cloudData.photoAda);
+            else localStorage.removeItem('twin_photo_ada');
+          } catch {}
+        }
+        if (cloudData.photoGabi !== undefined) {
+          setPhotoGabi(cloudData.photoGabi);
+          try {
+            if (cloudData.photoGabi) localStorage.setItem('twin_photo_gabi', cloudData.photoGabi);
+            else localStorage.removeItem('twin_photo_gabi');
+          } catch {}
+        }
+        if (cloudData.photoJoint !== undefined) {
+          setPhotoJoint(cloudData.photoJoint);
+          try {
+            if (cloudData.photoJoint) localStorage.setItem('twins_joint_photo', cloudData.photoJoint);
+            else localStorage.removeItem('twins_joint_photo');
+          } catch {}
+        }
+        if (cloudData.photoViewMode) {
+          setPhotoViewMode(cloudData.photoViewMode);
+          try { localStorage.setItem('twins_photo_mode', cloudData.photoViewMode); } catch {}
+        }
+      } else {
+        // Fallback para API do servidor se o Firestore estiver vazio
+        fetch('/api/photos')
+          .then(res => res.json())
+          .then(res => {
+            if (res.success && res.photos) {
+              setHasCloudPhotos(true);
+              if (res.photos.photoAda) setPhotoAda(res.photos.photoAda);
+              if (res.photos.photoGabi) setPhotoGabi(res.photos.photoGabi);
+              if (res.photos.photoJoint) setPhotoJoint(res.photos.photoJoint);
+              if (res.photos.photoViewMode) setPhotoViewMode(res.photos.photoViewMode);
+            }
+          })
+          .catch(() => {});
+      }
+    });
+
+    return () => {
+      unsubPhotos();
+    };
   }, []);
 
   // Inscrição em tempo real com Firestore para contagem verificada de confirmados
@@ -105,42 +165,81 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
     };
   }, []);
 
-  // Manipulador de upload de foto preservando resolução original e características
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'ada' | 'gabi' | 'joint') => {
+  // Manipulador de upload de foto preservando resolução original e salvando na nuvem
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'ada' | 'gabi' | 'joint') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      if (!dataUrl) return;
+    setIsUploadingPhoto(target);
+    try {
+      // Otimização automática: preserva nitidez e rosto real, comprimindo para caber no Firestore (~100-200kb)
+      const optimizedDataUrl = await compressImageFile(file, 1000, 0.82);
 
       if (target === 'ada') {
-        setPhotoAda(dataUrl);
-        try { localStorage.setItem('twin_photo_ada', dataUrl); } catch {}
+        setPhotoAda(optimizedDataUrl);
+        try { localStorage.setItem('twin_photo_ada', optimizedDataUrl); } catch {}
+        await saveTwinsPhotosToFirestore({ photoAda: optimizedDataUrl });
       } else if (target === 'gabi') {
-        setPhotoGabi(dataUrl);
-        try { localStorage.setItem('twin_photo_gabi', dataUrl); } catch {}
+        setPhotoGabi(optimizedDataUrl);
+        try { localStorage.setItem('twin_photo_gabi', optimizedDataUrl); } catch {}
+        await saveTwinsPhotosToFirestore({ photoGabi: optimizedDataUrl });
       } else {
-        setPhotoJoint(dataUrl);
-        try { localStorage.setItem('twins_joint_photo', dataUrl); } catch {}
+        setPhotoJoint(optimizedDataUrl);
+        try { localStorage.setItem('twins_joint_photo', optimizedDataUrl); } catch {}
+        await saveTwinsPhotosToFirestore({ photoJoint: optimizedDataUrl });
       }
-    };
-    reader.readAsDataURL(file);
+
+      setHasCloudPhotos(true);
+
+      // Espelhar também no servidor local para redundância completa
+      try {
+        await fetch('/api/photos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            [target === 'ada' ? 'photoAda' : target === 'gabi' ? 'photoGabi' : 'photoJoint']: optimizedDataUrl
+          })
+        });
+      } catch {}
+    } catch (err) {
+      console.error('Erro ao otimizar e salvar fotografia na nuvem:', err);
+    } finally {
+      setIsUploadingPhoto(null);
+      if (e.target) e.target.value = '';
+    }
   };
 
-  const handleRemovePhoto = (target: 'ada' | 'gabi' | 'joint', e: React.MouseEvent) => {
+  const handleRemovePhoto = async (target: 'ada' | 'gabi' | 'joint', e: React.MouseEvent) => {
     e.stopPropagation();
     if (target === 'ada') {
       setPhotoAda(null);
       try { localStorage.removeItem('twin_photo_ada'); } catch {}
+      await saveTwinsPhotosToFirestore({ photoAda: null });
     } else if (target === 'gabi') {
       setPhotoGabi(null);
       try { localStorage.removeItem('twin_photo_gabi'); } catch {}
+      await saveTwinsPhotosToFirestore({ photoGabi: null });
     } else {
       setPhotoJoint(null);
       try { localStorage.removeItem('twins_joint_photo'); } catch {}
+      await saveTwinsPhotosToFirestore({ photoJoint: null });
     }
+
+    try {
+      await fetch('/api/photos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          [target === 'ada' ? 'photoAda' : target === 'gabi' ? 'photoGabi' : 'photoJoint']: null
+        })
+      });
+    } catch {}
+  };
+
+  const handleToggleViewMode = (mode: 'individual' | 'joint') => {
+    setPhotoViewMode(mode);
+    try { localStorage.setItem('twins_photo_mode', mode); } catch {}
+    saveTwinsPhotosToFirestore({ photoViewMode: mode }).catch(() => {});
   };
 
   const handleCopyLocation = () => {
@@ -253,10 +352,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
             <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl text-[10px]">
               <button
                 type="button"
-                onClick={() => {
-                  setPhotoViewMode('individual');
-                  try { localStorage.setItem('twins_photo_mode', 'individual'); } catch {}
-                }}
+                onClick={() => handleToggleViewMode('individual')}
                 className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${
                   photoViewMode === 'individual'
                     ? 'bg-white text-slate-800 shadow-2xs'
@@ -267,10 +363,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setPhotoViewMode('joint');
-                  try { localStorage.setItem('twins_photo_mode', 'joint'); } catch {}
-                }}
+                onClick={() => handleToggleViewMode('joint')}
                 className={`px-2.5 py-0.5 rounded-lg font-semibold transition-all cursor-pointer ${
                   photoViewMode === 'joint'
                     ? 'bg-white text-slate-800 shadow-2xs'
@@ -314,11 +407,16 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
                 className="group relative cursor-pointer flex flex-col items-center bg-gradient-to-b from-rose-50/60 to-white hover:from-rose-50 rounded-2xl p-2.5 border-2 border-rose-100 hover:border-rose-300 transition-all text-center shadow-2xs"
               >
                 <div className="w-full aspect-[4/5] rounded-xl overflow-hidden bg-rose-50/50 flex items-center justify-center relative border border-rose-100/60">
-                  {photoAda ? (
+                  {isUploadingPhoto === 'ada' ? (
+                    <div className="flex flex-col items-center justify-center p-3 text-pink-600 gap-1.5">
+                      <Loader2 className="w-6 h-6 animate-spin text-[#EC4899]" />
+                      <span className="text-[10px] font-bold">Salvando na nuvem...</span>
+                    </div>
+                  ) : photoAda ? (
                     <>
                       <img
                         src={photoAda}
-                        alt="Fotografia da Ada"
+                        alt="Fotografia real da Ada"
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -336,7 +434,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
                         <Camera className="w-5 h-5" />
                       </div>
                       <span className="text-[11px] font-bold text-slate-700">Foto da Ada</span>
-                      <span className="text-[9px] text-slate-400 mt-0.5">Aguardando foto</span>
+                      <span className="text-[9px] text-slate-400 mt-0.5">Toque p/ enviar</span>
                     </div>
                   )}
                 </div>
@@ -354,11 +452,16 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
                 className="group relative cursor-pointer flex flex-col items-center bg-gradient-to-b from-purple-50/60 to-white hover:from-purple-50 rounded-2xl p-2.5 border-2 border-purple-100 hover:border-purple-300 transition-all text-center shadow-2xs"
               >
                 <div className="w-full aspect-[4/5] rounded-xl overflow-hidden bg-purple-50/50 flex items-center justify-center relative border border-purple-100/60">
-                  {photoGabi ? (
+                  {isUploadingPhoto === 'gabi' ? (
+                    <div className="flex flex-col items-center justify-center p-3 text-purple-600 gap-1.5">
+                      <Loader2 className="w-6 h-6 animate-spin text-[#8B5CF6]" />
+                      <span className="text-[10px] font-bold">Salvando na nuvem...</span>
+                    </div>
+                  ) : photoGabi ? (
                     <>
                       <img
                         src={photoGabi}
-                        alt="Fotografia da Gabi"
+                        alt="Fotografia real da Gabi"
                         className="w-full h-full object-cover"
                       />
                       <button
@@ -376,7 +479,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
                         <Camera className="w-5 h-5" />
                       </div>
                       <span className="text-[11px] font-bold text-slate-700">Foto da Gabi</span>
-                      <span className="text-[9px] text-slate-400 mt-0.5">Aguardando foto</span>
+                      <span className="text-[9px] text-slate-400 mt-0.5">Toque p/ enviar</span>
                     </div>
                   )}
                 </div>
@@ -395,11 +498,16 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
               className="group relative cursor-pointer flex flex-col items-center bg-gradient-to-b from-sky-50/50 via-purple-50/40 to-white hover:from-sky-50 rounded-2xl p-3 border-2 border-slate-200 hover:border-pink-200 transition-all text-center shadow-2xs"
             >
               <div className="w-full aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center relative border border-slate-200/60">
-                {photoJoint ? (
+                {isUploadingPhoto === 'joint' ? (
+                  <div className="flex flex-col items-center justify-center p-4 text-purple-600 gap-1.5">
+                    <Loader2 className="w-7 h-7 animate-spin text-[#8B5CF6]" />
+                    <span className="text-xs font-bold">Salvando foto na nuvem...</span>
+                  </div>
+                ) : photoJoint ? (
                   <>
                     <img
                       src={photoJoint}
-                      alt="Fotografia das Gêmeas Ada e Gabi"
+                      alt="Fotografia real das Gêmeas Ada e Gabi"
                       className="w-full h-full object-cover"
                     />
                     <button
@@ -417,7 +525,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
                       <Camera className="w-6 h-6 text-purple-400" />
                     </div>
                     <span className="text-xs font-bold text-slate-700">Foto das Gêmeas Juntas</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">Aguardando foto de Ada & Gabi</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">Toque para selecionar foto de Ada & Gabi</span>
                   </div>
                 )}
               </div>
@@ -431,6 +539,22 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
             </div>
           )}
 
+          {/* Indicador de sincronização em nuvem */}
+          {(photoAda || photoGabi || photoJoint) ? (
+            <div className="mt-2.5 text-center">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-medium text-emerald-700">
+                <Check className="w-3 h-3 text-emerald-600" />
+                <span>Fotos salvas na nuvem • Visíveis no site publicado e no celular</span>
+              </span>
+            </div>
+          ) : (
+            <div className="mt-2 text-center">
+              <span className="text-[10px] text-slate-400">
+                Toque nos quadros para carregar as fotos reais (sincronizadas para todos os convidados)
+              </span>
+            </div>
+          )}
+
           <p className="text-[10px] text-slate-400 text-center mt-2">
             As fotos das aniversariantes serão apresentadas fielmente em seu visual natural.
           </p>
@@ -438,7 +562,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
 
         {/* INFORMAÇÕES CONFIRMADAS DO CONVITE: LOCAL, DATA E HORÁRIO */}
         <div className="space-y-2.5 mb-5">
-          {/* Local: Casa da Vó Angelina */}
+          {/* Local: Casa da Bisavó */}
           <div className="p-3.5 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-sky-100 text-[#0284C7] flex items-center justify-center shrink-0">
@@ -465,9 +589,9 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
             </button>
           </div>
 
-          {/* Linha com Data e Horário: A Combinar */}
+          {/* Linha com Data e Horário: Sábado, 14 • Meio-dia */}
           <div className="grid grid-cols-2 gap-2.5">
-            {/* Data: A combinar */}
+            {/* Data: Sábado, 14 */}
             <div className="p-3 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-rose-100 text-[#EC4899] flex items-center justify-center shrink-0">
                 <Calendar className="w-4 h-4" />
@@ -482,7 +606,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
               </div>
             </div>
 
-            {/* Horário: A combinar */}
+            {/* Horário: A partir do meio-dia */}
             <div className="p-3 rounded-2xl bg-slate-50/90 border border-slate-200/80 flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-purple-100 text-[#8B5CF6] flex items-center justify-center shrink-0">
                 <Clock className="w-4 h-4" />
@@ -500,7 +624,7 @@ export const CompactInvitationCard: React.FC<CompactInvitationCardProps> = ({
 
           <div className="px-1 text-[11px] text-slate-500 flex items-center gap-1.5">
             <Info className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>As informações definitivas de data e horário serão combinadas diretamente com os convidados.</span>
+            <span>Esperamos por você a partir do meio-dia na Casa da Bisavó!</span>
           </div>
         </div>
 

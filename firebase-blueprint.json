@@ -60,6 +60,18 @@
         }
       },
       "required": ["itemId", "reservedBy"]
+    },
+    "twinsPhotos": {
+      "title": "Twins Photos",
+      "description": "Real photos of Ada & Gabi displayed on the digital invitation across devices",
+      "type": "object",
+      "properties": {
+        "photoAda": { "type": "string", "description": "Base64 or URL photo of Ada" },
+        "photoGabi": { "type": "string", "description": "Base64 or URL photo of Gabi" },
+        "photoJoint": { "type": "string", "description": "Base64 or URL photo of Ada and Gabi together" },
+        "photoViewMode": { "type": "string", "description": "Display mode (individual or joint)" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of photo update" }
+      }
     }
   },
   "firestore": {
@@ -70,6 +82,10 @@
     "/wishlistClaims/{claimId}": {
       "schema": "wishlistClaim",
       "description": "Gift reservations chosen by guests"
+    },
+    "/twinsPhotos/{docId}": {
+      "schema": "twinsPhotos",
+      "description": "Photos configuration for Ada & Gabi"
     }
   }
 }

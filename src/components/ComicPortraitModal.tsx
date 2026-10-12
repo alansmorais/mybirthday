@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Heart, Camera } from 'lucide-react';
+import { subscribeToTwinsPhotos } from '../lib/firebase';
 
 interface ComicPortraitModalProps {
   isOpen: boolean;
@@ -16,6 +17,15 @@ export const ComicPortraitModal: React.FC<ComicPortraitModalProps> = ({ isOpen, 
       setPhotoAda(localStorage.getItem('twin_photo_ada'));
       setPhotoGabi(localStorage.getItem('twin_photo_gabi'));
     } catch {}
+
+    const unsub = subscribeToTwinsPhotos((data) => {
+      if (data) {
+        if (data.photoAda !== undefined) setPhotoAda(data.photoAda);
+        if (data.photoGabi !== undefined) setPhotoGabi(data.photoGabi);
+      }
+    });
+
+    return () => unsub();
   }, [isOpen]);
 
   if (!isOpen) return null;

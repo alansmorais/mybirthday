@@ -20,11 +20,13 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '15mb' }));
+app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'daddy2026';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+const PHOTOS_FILE = path.join(DATA_DIR, 'photos.json');
 
 // Interface types
 interface RsvpRecord {
@@ -327,6 +329,48 @@ app.post('/api/wishlist/:id/reserve', (req: Request, res: Response) => {
     isReserved: item.isReserved,
     message: willBeReserved ? 'Item reserved anonymously!' : 'Item unreserved'
   });
+});
+
+// 4b. Get Twins Real Photos (Public)
+app.get('/api/photos', (req: Request, res: Response) => {
+  try {
+    if (fs.existsSync(PHOTOS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(PHOTOS_FILE, 'utf-8'));
+      return res.json({ success: true, photos: data });
+    }
+  } catch (err) {
+    console.error('Error reading photos.json:', err);
+  }
+  return res.json({ success: true, photos: null });
+});
+
+// 4c. Save Twins Real Photos (Public/Admin sync)
+app.post('/api/photos', (req: Request, res: Response) => {
+  try {
+    const { photoAda, photoGabi, photoJoint, photoViewMode } = req.body;
+    let existing: Record<string, any> = {};
+    if (fs.existsSync(PHOTOS_FILE)) {
+      try {
+        existing = JSON.parse(fs.readFileSync(PHOTOS_FILE, 'utf-8'));
+      } catch {}
+    }
+    const payload = {
+      ...existing,
+      photoAda: photoAda !== undefined ? photoAda : existing.photoAda || null,
+      photoGabi: photoGabi !== undefined ? photoGabi : existing.photoGabi || null,
+      photoJoint: photoJoint !== undefined ? photoJoint : existing.photoJoint || null,
+      photoViewMode: photoViewMode || existing.photoViewMode || 'individual',
+      updatedAt: new Date().toISOString()
+    };
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(PHOTOS_FILE, JSON.stringify(payload, null, 2), 'utf-8');
+    return res.json({ success: true, photos: payload });
+  } catch (err) {
+    console.error('Error saving photos:', err);
+    return res.status(500).json({ error: 'Failed to save photos' });
+  }
 });
 
 // 5. Admin Login Verification
